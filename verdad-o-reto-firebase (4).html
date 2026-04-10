@@ -1,0 +1,616 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>VERDAD O RETO</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;700&display=swap" rel="stylesheet">
+<link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#fbbf24">
+<link rel="apple-touch-icon" href="/icono.png">
+<style>
+  :root {
+    --bg:#080810; --surface:#10101c; --border:#1f1f38;
+    --truth:#ff5733; --dare:#8b5cf6; --accent:#fbbf24; --green:#10b981;
+    --text:#f0eff6; --muted:#64638a;
+    --normal:#10b981; --picante:#f97316; --extremo:#ef4444;
+    --glow-t:rgba(255,87,51,0.35); --glow-d:rgba(139,92,246,0.35);
+  }
+  *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+  body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min-height:100vh;overflow-x:hidden;}
+  body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellipse 70% 50% at 10% 10%,rgba(255,87,51,0.05) 0%,transparent 55%),radial-gradient(ellipse 60% 70% at 90% 90%,rgba(139,92,246,0.06) 0%,transparent 55%);pointer-events:none;z-index:0;}
+  body::after{content:'';position:fixed;inset:0;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");pointer-events:none;z-index:0;opacity:0.5;}
+  .wrap{position:relative;z-index:1;max-width:720px;margin:0 auto;padding:0 16px 100px;}
+  .screen{display:none;} .screen.active{display:block;}
+
+  /* HEADER */
+  header{text-align:center;padding:40px 0 24px;}
+  .logo{font-family:'Bebas Neue',sans-serif;font-size:clamp(56px,12vw,100px);line-height:0.88;letter-spacing:3px;background:linear-gradient(135deg,var(--truth) 0%,var(--accent) 50%,var(--dare) 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;filter:drop-shadow(0 0 40px rgba(251,191,36,0.12));}
+  .tagline{margin-top:10px;color:var(--muted);font-size:12px;letter-spacing:4px;text-transform:uppercase;}
+
+  /* MODE SELECTION */
+  .mode-title{text-align:center;margin-bottom:28px;font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:3px;color:var(--muted);}
+  .mode-cards{display:flex;flex-direction:column;gap:14px;}
+  .mode-card{padding:28px 24px;border-radius:20px;border:2px solid transparent;cursor:pointer;transition:all 0.25s;background:var(--surface);display:flex;align-items:center;gap:20px;position:relative;overflow:hidden;}
+  .mode-card::before{content:'';position:absolute;inset:0;opacity:0;transition:opacity 0.25s;}
+  .mode-card:hover::before{opacity:1;} .mode-card:active{transform:scale(0.98);}
+  .mode-normal{border-color:rgba(16,185,129,0.5);}
+  .mode-normal::before{background:radial-gradient(ellipse at left,rgba(16,185,129,0.08),transparent 60%);}
+  .mode-normal:hover{box-shadow:0 0 30px rgba(16,185,129,0.2);}
+  .mode-picante{border-color:rgba(249,115,22,0.5);}
+  .mode-picante::before{background:radial-gradient(ellipse at left,rgba(249,115,22,0.08),transparent 60%);}
+  .mode-picante:hover{box-shadow:0 0 30px rgba(249,115,22,0.2);}
+  .mode-extremo{border-color:rgba(239,68,68,0.5);}
+  .mode-extremo::before{background:radial-gradient(ellipse at left,rgba(239,68,68,0.08),transparent 60%);}
+  .mode-extremo:hover{box-shadow:0 0 30px rgba(239,68,68,0.2);}
+  .mode-icon{font-size:40px;flex-shrink:0;position:relative;z-index:1;}
+  .mode-info{flex:1;position:relative;z-index:1;}
+  .mode-name{font-family:'Bebas Neue',sans-serif;font-size:28px;letter-spacing:2px;line-height:1;margin-bottom:5px;}
+  .mode-normal .mode-name{color:var(--normal);} .mode-picante .mode-name{color:var(--picante);} .mode-extremo .mode-name{color:var(--extremo);}
+  .mode-desc{font-size:13px;color:var(--muted);line-height:1.4;}
+  .mode-count{font-family:'Bebas Neue',sans-serif;font-size:22px;position:relative;z-index:1;color:var(--muted);text-align:right;flex-shrink:0;}
+  .mode-count small{display:block;font-family:'DM Sans',sans-serif;font-size:10px;letter-spacing:1px;text-transform:uppercase;}
+
+  /* GAME TOPBAR */
+  .game-topbar{display:flex;align-items:center;gap:12px;margin-bottom:20px;padding:12px 16px;background:var(--surface);border:1px solid var(--border);border-radius:12px;}
+  .back-btn{background:none;border:none;color:var(--muted);cursor:pointer;font-size:20px;padding:0;transition:color 0.2s;flex-shrink:0;}
+  .back-btn:hover{color:var(--text);}
+  .current-mode-badge{font-family:'Bebas Neue',sans-serif;font-size:13px;letter-spacing:2px;padding:4px 12px;border-radius:99px;flex-shrink:0;}
+  .badge-normal{background:rgba(16,185,129,0.15);color:var(--normal);border:1px solid rgba(16,185,129,0.3);}
+  .badge-picante{background:rgba(249,115,22,0.15);color:var(--picante);border:1px solid rgba(249,115,22,0.3);}
+  .badge-extremo{background:rgba(239,68,68,0.15);color:var(--extremo);border:1px solid rgba(239,68,68,0.3);}
+  .mode-stats-mini{margin-left:auto;font-size:12px;color:var(--muted);}
+
+  /* STATS */
+  .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:0 0 20px;}
+  .stat{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:12px 8px;text-align:center;}
+  .stat-num{font-family:'Bebas Neue',sans-serif;font-size:24px;color:var(--accent);}
+  .stat-label{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-top:2px;}
+
+  /* PROGRESS */
+  .progress-wrap{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:14px 18px;margin-bottom:20px;}
+  .progress-info{display:flex;justify-content:space-between;align-items:center;margin-bottom:9px;font-size:13px;}
+  .progress-label{color:var(--muted);} .progress-val{color:var(--accent);font-weight:700;}
+  .progress-bar{height:5px;background:var(--border);border-radius:99px;overflow:hidden;}
+  .progress-fill{height:100%;border-radius:99px;background:linear-gradient(90deg,var(--truth),var(--accent));transition:width 0.6s cubic-bezier(.34,1.56,.64,1);}
+  .unlock-note{margin-top:9px;font-size:12px;color:var(--muted);text-align:center;}
+  .unlock-note span{color:var(--accent);font-weight:700;}
+
+  /* CHOICE BUTTONS */
+  .choice-section{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:20px;}
+  .choice-btn{padding:20px 12px;border:2px solid transparent;border-radius:16px;cursor:pointer;font-family:'Bebas Neue',sans-serif;font-size:30px;letter-spacing:2px;transition:all 0.2s;position:relative;overflow:hidden;background:var(--surface);}
+  .choice-btn::after{content:'';position:absolute;inset:0;opacity:0;transition:opacity 0.2s;}
+  .choice-btn:hover::after{opacity:1;} .choice-btn:active{transform:scale(0.96);}
+  .btn-truth{border-color:var(--truth);color:var(--truth);}
+  .btn-truth::after{background:radial-gradient(ellipse at center,var(--glow-t),transparent 70%);}
+  .btn-truth:hover{background:rgba(255,87,51,0.08);box-shadow:0 0 24px var(--glow-t);}
+  .btn-dare{border-color:var(--dare);color:var(--dare);}
+  .btn-dare::after{background:radial-gradient(ellipse at center,var(--glow-d),transparent 70%);}
+  .btn-dare:hover{background:rgba(139,92,246,0.08);box-shadow:0 0 24px var(--glow-d);}
+  .choice-btn small{display:block;font-family:'DM Sans',sans-serif;font-size:11px;letter-spacing:1px;margin-top:4px;opacity:0.5;}
+
+  /* CARD */
+  .card-wrap{min-height:170px;display:flex;align-items:center;justify-content:center;margin-bottom:20px;}
+  .card{width:100%;padding:30px 28px;border-radius:20px;border:1px solid var(--border);background:var(--surface);position:relative;overflow:hidden;animation:cardIn 0.35s cubic-bezier(.34,1.56,.64,1);}
+  @keyframes cardIn{from{opacity:0;transform:translateY(16px) scale(0.95)}to{opacity:1;transform:translateY(0) scale(1)}}
+  .card.truth-card{border-color:rgba(255,87,51,0.35);} .card.dare-card{border-color:rgba(139,92,246,0.35);}
+  .card::before{content:'';position:absolute;top:-50px;right:-50px;width:150px;height:150px;border-radius:50%;opacity:0.06;}
+  .truth-card::before{background:var(--truth);} .dare-card::before{background:var(--dare);}
+  .card-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;}
+  .card-type{font-family:'Bebas Neue',sans-serif;font-size:11px;letter-spacing:4px;display:flex;align-items:center;gap:6px;}
+  .truth-card .card-type{color:var(--truth);} .dare-card .card-type{color:var(--dare);}
+  .card-type-dot{width:5px;height:5px;border-radius:50%;background:currentColor;box-shadow:0 0 6px currentColor;}
+  .card-mode-pill{font-size:10px;font-weight:700;padding:2px 8px;border-radius:99px;text-transform:uppercase;letter-spacing:1px;}
+  .pill-normal{background:rgba(16,185,129,0.15);color:var(--normal);}
+  .pill-picante{background:rgba(249,115,22,0.15);color:var(--picante);}
+  .pill-extremo{background:rgba(239,68,68,0.15);color:var(--extremo);}
+  .card-text{font-size:clamp(16px,3vw,23px);line-height:1.5;font-weight:500;color:var(--text);}
+  .card-meta{margin-top:16px;padding-top:12px;border-top:1px solid var(--border);display:flex;justify-content:space-between;font-size:11px;color:var(--muted);}
+  .card-empty{text-align:center;padding:46px 20px;color:var(--muted);}
+  .card-empty .icon{font-size:40px;margin-bottom:10px;} .card-empty p{font-size:14px;}
+
+  /* LOADING */
+  .loading{text-align:center;padding:40px 20px;color:var(--muted);}
+  .spinner{width:28px;height:28px;border:3px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin 0.7s linear infinite;margin:0 auto 12px;}
+  @keyframes spin{to{transform:rotate(360deg)}}
+
+  /* ADD FORM */
+  .add-section{background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:22px;margin-bottom:24px;transition:opacity 0.3s;}
+  .add-section.locked{opacity:0.4;pointer-events:none;}
+  .add-section h3{font-family:'Bebas Neue',sans-serif;font-size:19px;letter-spacing:2px;color:var(--accent);margin-bottom:4px;}
+  .add-section>p{font-size:13px;color:var(--muted);margin-bottom:16px;}
+  .form-label{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;display:block;}
+  .toggle-row{display:flex;gap:7px;margin-bottom:14px;flex-wrap:wrap;}
+  .tog-btn{padding:6px 14px;border-radius:8px;border:1px solid var(--border);background:transparent;color:var(--muted);font-size:12px;font-weight:600;cursor:pointer;transition:all 0.2s;font-family:'DM Sans',sans-serif;}
+  .tog-btn.active-truth{border-color:var(--truth);background:rgba(255,87,51,0.1);color:var(--truth);}
+  .tog-btn.active-dare{border-color:var(--dare);background:rgba(139,92,246,0.1);color:var(--dare);}
+  .tog-btn.active-normal{border-color:var(--normal);background:rgba(16,185,129,0.1);color:var(--normal);}
+  .tog-btn.active-picante{border-color:var(--picante);background:rgba(249,115,22,0.1);color:var(--picante);}
+  .tog-btn.active-extremo{border-color:var(--extremo);background:rgba(239,68,68,0.1);color:var(--extremo);}
+  textarea{width:100%;padding:12px 15px;background:var(--bg);border:1px solid var(--border);border-radius:12px;color:var(--text);font-size:15px;font-family:'DM Sans',sans-serif;resize:vertical;min-height:80px;outline:none;transition:border-color 0.2s;}
+  textarea:focus{border-color:var(--accent);} textarea::placeholder{color:var(--muted);}
+  .name-input{width:100%;padding:10px 15px;background:var(--bg);border:1px solid var(--border);border-radius:12px;color:var(--text);font-size:14px;font-family:'DM Sans',sans-serif;margin-top:8px;outline:none;transition:border-color 0.2s;}
+  .name-input:focus{border-color:var(--accent);} .name-input::placeholder{color:var(--muted);}
+
+  /* CAPTCHA */
+  .captcha-wrap{margin-top:9px;background:var(--bg);border:1px solid var(--border);border-radius:12px;padding:11px 15px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+  .captcha-question{font-size:14px;color:var(--text);font-weight:600;white-space:nowrap;}
+  .captcha-input{width:65px;padding:7px 10px;background:var(--surface);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:16px;font-weight:700;text-align:center;outline:none;transition:border-color 0.2s;font-family:'DM Sans',sans-serif;}
+  .captcha-input:focus{border-color:var(--accent);}
+  .captcha-input.error{border-color:var(--truth);animation:shake 0.3s;}
+  .captcha-refresh{background:none;border:none;color:var(--muted);cursor:pointer;font-size:17px;padding:4px;transition:transform 0.3s;}
+  .captcha-refresh:hover{transform:rotate(180deg);color:var(--accent);}
+  @keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-5px)}75%{transform:translateX(5px)}}
+  .submit-btn{width:100%;margin-top:10px;padding:13px;border:none;border-radius:12px;background:linear-gradient(135deg,var(--truth),var(--dare));color:white;font-family:'Bebas Neue',sans-serif;font-size:16px;letter-spacing:2px;cursor:pointer;transition:all 0.2s;}
+  .submit-btn:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(139,92,246,0.28);}
+  .submit-btn:active{transform:translateY(0);}
+  .submit-btn:disabled{opacity:0.5;cursor:not-allowed;transform:none;}
+
+  /* LIST */
+  .list-section{margin-top:28px;}
+  .list-section h3{font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:2px;color:var(--muted);margin-bottom:12px;}
+  .filter-tabs{display:flex;gap:6px;margin-bottom:14px;flex-wrap:wrap;}
+  .filter-tab{padding:5px 12px;border-radius:99px;border:1px solid var(--border);background:transparent;color:var(--muted);font-size:12px;cursor:pointer;font-family:'DM Sans',sans-serif;transition:all 0.15s;}
+  .f-active-all{background:var(--surface);color:var(--text);border-color:var(--muted);}
+  .f-active-truth{background:rgba(255,87,51,0.1);color:var(--truth);border-color:var(--truth);}
+  .f-active-dare{background:rgba(139,92,246,0.1);color:var(--dare);border-color:var(--dare);}
+  .list-items{display:flex;flex-direction:column;gap:8px;}
+  .list-item{padding:12px 15px;background:var(--surface);border:1px solid var(--border);border-radius:12px;display:flex;gap:9px;align-items:flex-start;font-size:13px;transition:border-color 0.2s;}
+  .list-item:hover{border-color:var(--muted);}
+  .badge{font-size:9px;font-weight:700;padding:3px 6px;border-radius:99px;text-transform:uppercase;letter-spacing:1px;flex-shrink:0;margin-top:2px;}
+  .badge-t{background:rgba(255,87,51,0.15);color:var(--truth);} .badge-d{background:rgba(139,92,246,0.15);color:var(--dare);}
+  .list-item-text{flex:1;line-height:1.5;color:var(--text);}
+  .list-item-by{font-size:11px;color:var(--muted);margin-top:3px;}
+  .list-empty{text-align:center;padding:28px;color:var(--muted);font-size:14px;}
+
+  /* CONN + TOAST */
+  .conn-bar{text-align:center;font-size:11px;padding:6px;border-radius:8px;margin-bottom:14px;display:none;}
+  .conn-bar.offline{display:block;background:rgba(239,68,68,0.12);color:#ef4444;border:1px solid rgba(239,68,68,0.25);}
+  .conn-bar.online{display:block;background:rgba(16,185,129,0.1);color:var(--green);border:1px solid rgba(16,185,129,0.2);}
+  .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(100px);padding:11px 20px;border-radius:99px;font-weight:700;font-size:13px;transition:transform 0.4s cubic-bezier(.34,1.56,.64,1);z-index:100;white-space:nowrap;pointer-events:none;}
+  .toast.show{transform:translateX(-50%) translateY(0);}
+  .toast.success{background:var(--green);color:#fff;} .toast.error{background:#ef4444;color:#fff;} .toast.info{background:var(--accent);color:#000;}
+
+  @media(max-width:400px){
+    .stats{grid-template-columns:repeat(2,1fr);}
+    .choice-btn{font-size:26px;padding:16px 8px;}
+    .mode-card{padding:20px 16px;gap:14px;} .mode-icon{font-size:32px;} .mode-name{font-size:24px;}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <div class="logo">VERDAD<br>O RETO</div>
+    <p class="tagline">El juego que construye la comunidad 🎲</p>
+  </header>
+
+  <!-- SCREEN 1: ELEGIR MODO -->
+  <div class="screen active" id="screenMode">
+    <p class="mode-title">— ELEGÍ EL MODO —</p>
+    <div class="mode-cards">
+      <div class="mode-card mode-normal" id="modeNormal">
+        <div class="mode-icon">😄</div>
+        <div class="mode-info">
+          <div class="mode-name">NORMAL</div>
+          <div class="mode-desc">Preguntas y retos divertidos para toda la joda. Sin vergüenzas extremas.</div>
+        </div>
+        <div class="mode-count" id="countNormal">—<small>cartas</small></div>
+      </div>
+      <div class="mode-card mode-picante" id="modePicante">
+        <div class="mode-icon">🌶️</div>
+        <div class="mode-info">
+          <div class="mode-name">PICANTE</div>
+          <div class="mode-desc">Sube la temperatura. Preguntas más comprometidas y retos atrevidos.</div>
+        </div>
+        <div class="mode-count" id="countPicante">—<small>cartas</small></div>
+      </div>
+      <div class="mode-card mode-extremo" id="modeExtremo">
+        <div class="mode-icon">💀</div>
+        <div class="mode-info">
+          <div class="mode-name">EXTREMO</div>
+          <div class="mode-desc">Sin filtros. Solo para los valientes. Sabés a lo que entrás.</div>
+        </div>
+        <div class="mode-count" id="countExtremo">—<small>cartas</small></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SCREEN 2: JUEGO -->
+  <div class="screen" id="screenGame">
+
+    <div class="game-topbar">
+      <button class="back-btn" id="backBtn">←</button>
+      <span class="current-mode-badge" id="modeBadge">NORMAL</span>
+      <span class="mode-stats-mini" id="modeStatsMini"></span>
+    </div>
+
+    <div class="conn-bar" id="connBar"></div>
+
+
+
+    <div class="progress-wrap">
+      <div class="progress-info">
+        <span class="progress-label">Tu progreso</span>
+        <span class="progress-val" id="progressText">0 / 10</span>
+      </div>
+      <div class="progress-bar"><div class="progress-fill" id="progressFill" style="width:0%"></div></div>
+      <p class="unlock-note" id="unlockNote">Jugá <span id="playsLeft">10</span> veces más para poder agregar cartas</p>
+    </div>
+
+    <div class="choice-section">
+      <button class="choice-btn btn-truth" id="btnTruth">VERDAD<small>🤔 Sin mentiras</small></button>
+      <button class="choice-btn btn-dare" id="btnDare">RETO<small>🔥 Atrévete</small></button>
+    </div>
+
+    <div class="card-wrap" id="cardWrap">
+      <div class="card-empty"><div class="icon">🎲</div><p>Elegí <strong>Verdad</strong> o <strong>Reto</strong> para empezar</p></div>
+    </div>
+
+    <div class="add-section locked" id="addSection">
+      <h3>✍️ Agregá tu carta</h3>
+      <p>Jugaste lo suficiente — contribuí al mazo comunal</p>
+      <span class="form-label">Tipo</span>
+      <div class="toggle-row">
+        <button class="tog-btn active-truth" id="togTruth">VERDAD</button>
+        <button class="tog-btn" id="togDare">RETO</button>
+      </div>
+      <span class="form-label">Modo</span>
+      <div class="toggle-row">
+        <button class="tog-btn active-normal" id="togNormal">😄 NORMAL</button>
+        <button class="tog-btn" id="togPicante">🌶️ PICANTE</button>
+        <button class="tog-btn" id="togExtremo">💀 EXTREMO</button>
+      </div>
+      <textarea id="cardText" placeholder="Escribí tu pregunta o reto..." maxlength="300"></textarea>
+      <input class="name-input" id="authorName" type="text" placeholder="Tu nombre o apodo (opcional)" maxlength="40">
+      <div class="captcha-wrap">
+        <span class="captcha-question" id="captchaQuestion">¿Cuánto es ...?</span>
+        <input class="captcha-input" id="captchaAnswer" type="number" placeholder="?">
+        <button class="captcha-refresh" id="captchaRefresh" title="Nueva pregunta">↻</button>
+      </div>
+      <button class="submit-btn" id="submitBtn">AGREGAR AL MAZO →</button>
+    </div>
+
+
+
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import {
+  getFirestore, collection, addDoc, getDocs, onSnapshot, deleteDoc,
+  query, orderBy, serverTimestamp, doc, getDoc, setDoc, updateDoc, increment
+} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey:"AIzaSyDTtD4dXW1r1RWLDSOWUGIiqskAavP1Zz0",
+  authDomain:"verdad-952a0.firebaseapp.com",
+  projectId:"verdad-952a0",
+  storageBucket:"verdad-952a0.firebasestorage.app",
+  messagingSenderId:"648263922519",
+  appId:"1:648263922519:web:3e3f04d3bf0b2ad13f4412"
+};
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+const PLAYS_TO_UNLOCK = 10;
+const CARDS_COL = 'cards';
+const MODE_LABELS = { normal:'😄 NORMAL', picante:'🌶️ PICANTE', extremo:'💀 EXTREMO' };
+
+let allCards = [];
+let currentMode = null;
+let selectedType = 'truth';
+let selectedFormMode = 'normal';
+let currentFilter = 'all';
+let captchaAnswer = 0;
+let myPlays = parseInt(localStorage.getItem('vr-plays') || '0');
+let playerId = localStorage.getItem('vr-pid');
+if (!playerId) { playerId = 'p_' + Math.random().toString(36).substr(2,9); localStorage.setItem('vr-pid', playerId); }
+
+const starterCards = [
+  // ===== NORMAL — VERDADES =====
+  {type:'truth',mode:'normal',text:'¿Cuál es la cosa más vergonzosa que te ha pasado en público?',author:'Sistema'},
+  {type:'truth',mode:'normal',text:'¿Cuál fue la mentira más grande que le dijiste a tus viejos?',author:'Sistema'},
+  {type:'truth',mode:'normal',text:'¿Qué es lo más raro que buscaste en Google?',author:'Sistema'},
+  {type:'truth',mode:'normal',text:'¿Cuál es tu mayor miedo que casi nadie sabe?',author:'Sistema'},
+  {type:'truth',mode:'normal',text:'¿Alguna vez te hiciste el/la enfermo/a para no ir a algo? ¿A qué?',author:'Sistema'},
+  {type:'truth',mode:'normal',text:'¿Cuál es el apodo más ridículo que te pusieron?',author:'Sistema'},
+  {type:'truth',mode:'normal',text:'¿Qué canción escuchás de forma secreta y que te daría vergüenza admitir?',author:'Sistema'},
+  {type:'truth',mode:'normal',text:'¿Cuál fue el momento más incómodo que viviste en una reunión familiar?',author:'Sistema'},
+  {type:'truth',mode:'normal',text:'¿Alguna vez rompiste algo en la casa de alguien y no lo dijiste?',author:'Sistema'},
+  {type:'truth',mode:'normal',text:'¿Cuál es el talento secreto más raro que tenés?',author:'Sistema'},
+  // ===== NORMAL — RETOS =====
+  {type:'dare',mode:'normal',text:'Hacé una imitación de alguien del grupo y que adivinen quién es.',author:'Sistema'},
+  {type:'dare',mode:'normal',text:'Bailá 30 segundos sin música.',author:'Sistema'},
+  {type:'dare',mode:'normal',text:'Contá un chiste. Si nadie se ríe, hacé 10 sentadillas.',author:'Sistema'},
+  {type:'dare',mode:'normal',text:'Mostrá las últimas 3 fotos de tu galería.',author:'Sistema'},
+  {type:'dare',mode:'normal',text:'Hablá con acento extranjero durante los próximos 3 turnos.',author:'Sistema'},
+  {type:'dare',mode:'normal',text:'Escribile un mensaje de voz cantado a alguien de tus contactos ahora mismo.',author:'Sistema'},
+  {type:'dare',mode:'normal',text:'Hacé 15 flexiones o recibís una prenda.',author:'Sistema'},
+  {type:'dare',mode:'normal',text:'Actuá una escena dramática de telenovela y el grupo elige el tema.',author:'Sistema'},
+  {type:'dare',mode:'normal',text:'Describí a cada persona del grupo con un solo adjetivo, en voz alta.',author:'Sistema'},
+  {type:'dare',mode:'normal',text:'Publicá una historia en Instagram con el texto que te dicte el grupo.',author:'Sistema'},
+  // ===== PICANTE — VERDADES =====
+  {type:'truth',mode:'picante',text:'¿Tenés un crush en alguien del grupo? Decí el nombre.',author:'Sistema'},
+  {type:'truth',mode:'picante',text:'¿Con quién del grupo te irías a un hotel si tuvieras que elegir?',author:'Sistema'},
+  {type:'truth',mode:'picante',text:'¿Cuál fue tu peor cita y por qué terminó mal?',author:'Sistema'},
+  {type:'truth',mode:'picante',text:'¿Alguna vez le mentiste a una pareja para poder salir con otra persona?',author:'Sistema'},
+  {type:'truth',mode:'picante',text:'¿Cuál es la fantasía más loca que tuviste con alguien conocido?',author:'Sistema'},
+  {type:'truth',mode:'picante',text:'¿En qué lugar más insólito besaste a alguien?',author:'Sistema'},
+  {type:'truth',mode:'picante',text:'¿Alguna vez fingiste que te gustaba alguien solo para obtener algo?',author:'Sistema'},
+  {type:'truth',mode:'picante',text:'¿Cuál es la parte del cuerpo que más te atrae de alguien del grupo?',author:'Sistema'},
+  {type:'truth',mode:'picante',text:'¿Alguna vez mandaste un mensaje comprometedor a la persona equivocada?',author:'Sistema'},
+  {type:'truth',mode:'picante',text:'¿Cuál es la cosa más atrevida que hiciste para conquistar a alguien?',author:'Sistema'},
+  // ===== PICANTE — RETOS =====
+  {type:'dare',mode:'picante',text:'Escribile un mensaje seductor a la última persona de tu historial de chats y mostrá la pantalla.',author:'Sistema'},
+  {type:'dare',mode:'picante',text:'Hacé tu mejor cara seductora mirando fijo a alguien del grupo durante 10 segundos.',author:'Sistema'},
+  {type:'dare',mode:'picante',text:'Describí en detalle tu tipo ideal de pareja frente a todos.',author:'Sistema'},
+  {type:'dare',mode:'picante',text:'Hacé una actuación de cómo coqueteás cuando te gusta alguien.',author:'Sistema'},
+  {type:'dare',mode:'picante',text:'Mostrá el último mensaje comprometedor que enviaste.',author:'Sistema'},
+  {type:'dare',mode:'picante',text:'Dale un masaje de hombros a la persona a tu derecha durante 1 minuto.',author:'Sistema'},
+  {type:'dare',mode:'picante',text:'Decile a alguien del grupo algo que nunca te animaste a decirle.',author:'Sistema'},
+  {type:'dare',mode:'picante',text:'Actuá una escena de película romántica con alguien del grupo que elija el resto.',author:'Sistema'},
+  {type:'dare',mode:'picante',text:'Mostrá la conversación más coqueta que tenés guardada en el celu.',author:'Sistema'},
+  {type:'dare',mode:'picante',text:'Mandále un emoji sugerente a alguien de tus contactos y mostrá su reacción.',author:'Sistema'},
+  // ===== EXTREMO — VERDADES =====
+  {type:'truth',mode:'extremo',text:'¿Cuál es el secreto sexual que nunca le contarías a tu familia?',author:'Sistema'},
+  {type:'truth',mode:'extremo',text:'¿Con cuántas personas del grupo te acostarías si no hubiera consecuencias?',author:'Sistema'},
+  {type:'truth',mode:'extremo',text:'¿Cuál es la experiencia sexual más vergonzosa que tuviste?',author:'Sistema'},
+  {type:'truth',mode:'extremo',text:'¿Alguna vez te atraparon en una situación comprometedora? ¿Qué pasó?',author:'Sistema'},
+  {type:'truth',mode:'extremo',text:'¿Cuál es tu fantasía que nunca cumpliste y querés cumplir?',author:'Sistema'},
+  {type:'truth',mode:'extremo',text:'¿Alguna vez tuviste sentimientos por alguien que estaba en pareja? ¿Actuaste?',author:'Sistema'},
+  {type:'truth',mode:'extremo',text:'¿Cuál fue el lugar más arriesgado donde estuviste íntimo/a con alguien?',author:'Sistema'},
+  {type:'truth',mode:'extremo',text:'¿Alguna vez enviaste fotos o videos comprometedores? ¿A quién?',author:'Sistema'},
+  {type:'truth',mode:'extremo',text:'¿Qué cosa harías con alguien del grupo que no le contarías a nadie después?',author:'Sistema'},
+  {type:'truth',mode:'extremo',text:'¿Cuál es el límite que cruzaste y que repetirías sin dudarlo?',author:'Sistema'},
+  // ===== EXTREMO — RETOS =====
+  {type:'dare',mode:'extremo',text:'Mostrá el mensaje más comprometedor que tenés en el celu sin editar ni borrar nada.',author:'Sistema'},
+  {type:'dare',mode:'extremo',text:'Llamá a tu ex ahora mismo. Si atiende, tenés que decirle que lo/la extrañás.',author:'Sistema'},
+  {type:'dare',mode:'extremo',text:'Escribile al grupo de WhatsApp familiar algo que te dicte el grupo.',author:'Sistema'},
+  {type:'dare',mode:'extremo',text:'Describí en detalle y en voz alta la última vez que te sentiste muy atraído/a por alguien.',author:'Sistema'},
+  {type:'dare',mode:'extremo',text:'Mostrá la foto más comprometedora de tu galería. Sin excusas.',author:'Sistema'},
+  {type:'dare',mode:'extremo',text:'Elegí a alguien del grupo y decile en voz alta lo que harías si estuvieran solos.',author:'Sistema'},
+  {type:'dare',mode:'extremo',text:'Mandá un mensaje de voz de 30 segundos al/la ex que más te marcó.',author:'Sistema'},
+  {type:'dare',mode:'extremo',text:'Actuá sin hablar tu escena íntima favorita y que el grupo adivine qué es.',author:'Sistema'},
+  {type:'dare',mode:'extremo',text:'Dale un beso en el cuello a la persona que elija el grupo. Si te negás, contás tu secreto más grande.',author:'Sistema'},
+  {type:'dare',mode:'extremo',text:'Mostrá el perfil de la app de citas que tenés, o creá uno en vivo con el grupo mirando.',author:'Sistema'},
+];
+
+async function init() {
+  updateProgress();
+  generateCaptcha();
+  await seedStarterCards();
+  listenToCards();
+  trackPlayer();
+}
+
+async function seedStarterCards() {
+  try {
+    const versionRef = doc(db, 'meta', 'seed');
+    const versionSnap = await getDoc(versionRef);
+    if (versionSnap.exists() && versionSnap.data().version === 2) return;
+    // Borrar starters viejos
+    const snap = await getDocs(collection(db, CARDS_COL));
+    for (const d of snap.docs.filter(d => d.data().starter === true)) {
+      await deleteDoc(doc(db, CARDS_COL, d.id));
+    }
+    // Insertar nuevos
+    for (const c of starterCards) {
+      await addDoc(collection(db, CARDS_COL), {...c, createdAt:serverTimestamp(), starter:true});
+    }
+    await setDoc(versionRef, { version: 2 });
+  } catch(e) { console.error(e); }
+}
+
+function listenToCards() {
+  const q = query(collection(db, CARDS_COL), orderBy('createdAt','asc'));
+  onSnapshot(q, snap => {
+    allCards = snap.docs.map(d => ({id:d.id,...d.data()}));
+    updateModeCounts();
+    if (currentMode) { updateStats(); renderList(); }
+    showConn(true);
+  }, err => { console.error(err); showConn(false); });
+}
+
+async function trackPlayer() {
+  try {
+    const ref = doc(db,'players',playerId);
+    const snap = await getDoc(ref);
+    if (!snap.exists()) {
+      await setDoc(ref, {joinedAt:serverTimestamp()});
+      const sr = doc(db,'meta','stats');
+      try { await updateDoc(sr, {players:increment(1)}); } catch { await setDoc(sr,{players:1}); }
+    }
+    const ss = await getDoc(doc(db,'meta','stats'));
+    if (ss.exists()) document.getElementById('statPlayers').textContent = ss.data().players || 1;
+  } catch(e) { console.error(e); }
+}
+
+function updateModeCounts() {
+  ['normal','picante','extremo'].forEach(m => {
+    const n = allCards.filter(c => c.mode === m).length;
+    const el = document.getElementById('count' + m.charAt(0).toUpperCase() + m.slice(1));
+    if (el) el.innerHTML = n + '<small>cartas</small>';
+  });
+}
+
+function enterMode(mode) {
+  currentMode = mode;
+  selectedFormMode = mode;
+  const badge = document.getElementById('modeBadge');
+  badge.textContent = MODE_LABELS[mode];
+  badge.className = 'current-mode-badge badge-' + mode;
+  document.getElementById('modeStatsMini').textContent = allCards.filter(c=>c.mode===mode).length + ' cartas';
+  document.getElementById('screenMode').classList.remove('active');
+  document.getElementById('screenGame').classList.add('active');
+  setFormMode(mode);
+  updateStats(); renderList(); updateProgress();
+  window.scrollTo(0,0);
+}
+
+function goBack() {
+  currentMode = null;
+  document.getElementById('screenGame').classList.remove('active');
+  document.getElementById('screenMode').classList.add('active');
+  document.getElementById('cardWrap').innerHTML = '<div class="card-empty"><div class="icon">🎲</div><p>Elegí <strong>Verdad</strong> o <strong>Reto</strong> para empezar</p></div>';
+  window.scrollTo(0,0);
+}
+
+function updateStats() {
+  const f = allCards.filter(c => c.mode === currentMode);
+  document.getElementById('statTotal').textContent = f.length;
+  document.getElementById('statTruths').textContent = f.filter(c=>c.type==='truth').length;
+  document.getElementById('statDares').textContent = f.filter(c=>c.type==='dare').length;
+}
+
+function updateProgress() {
+  const pct = Math.min(100,(myPlays/PLAYS_TO_UNLOCK)*100);
+  document.getElementById('progressFill').style.width = pct+'%';
+  document.getElementById('progressText').textContent = myPlays+' / '+PLAYS_TO_UNLOCK;
+  if (myPlays >= PLAYS_TO_UNLOCK) {
+    document.getElementById('addSection').classList.remove('locked');
+    document.getElementById('unlockNote').innerHTML = '🔓 <span>¡Desbloqueado!</span> Podés agregar tus propias cartas';
+  } else {
+    document.getElementById('addSection').classList.add('locked');
+    const left = PLAYS_TO_UNLOCK - myPlays;
+    document.getElementById('playsLeft').textContent = left;
+    document.getElementById('unlockNote').innerHTML = 'Jugá <span>'+left+'</span> '+(left===1?'vez más':'veces más')+' para poder agregar cartas';
+  }
+}
+
+function drawCard(type) {
+  const pool = allCards.filter(c => c.type===type && c.mode===currentMode);
+  if (!pool.length) { showToast('¡No hay cartas de este tipo en este modo!','info'); return; }
+  renderCard(pool[Math.floor(Math.random()*pool.length)]);
+  myPlays++; localStorage.setItem('vr-plays', myPlays); updateProgress();
+}
+
+function renderCard(card) {
+  const isT = card.type==='truth';
+  const by = card.starter ? 'Carta base' : 'Por '+(card.author||'Anónimo');
+  const m = card.mode || 'normal';
+  document.getElementById('cardWrap').innerHTML = `
+    <div class="card ${isT?'truth-card':'dare-card'}">
+      <div class="card-top">
+        <div class="card-type"><span class="card-type-dot"></span>${isT?'VERDAD':'RETO'}</div>
+        <span class="card-mode-pill pill-${m}">${MODE_LABELS[m]}</span>
+      </div>
+      <div class="card-text">${esc(card.text)}</div>
+      <div class="card-meta"><span>${by}</span><span>${allCards.filter(c=>c.type===card.type&&c.mode===currentMode).length} cartas</span></div>
+    </div>`;
+}
+
+function setType(type) {
+  selectedType = type;
+  document.getElementById('togTruth').className = 'tog-btn'+(type==='truth'?' active-truth':'');
+  document.getElementById('togDare').className = 'tog-btn'+(type==='dare'?' active-dare':'');
+}
+
+function setFormMode(mode) {
+  selectedFormMode = mode;
+  document.getElementById('togNormal').className = 'tog-btn'+(mode==='normal'?' active-normal':'');
+  document.getElementById('togPicante').className = 'tog-btn'+(mode==='picante'?' active-picante':'');
+  document.getElementById('togExtremo').className = 'tog-btn'+(mode==='extremo'?' active-extremo':'');
+}
+
+function generateCaptcha() {
+  const ops = [
+    ()=>{const a=Math.ceil(Math.random()*9),b=Math.ceil(Math.random()*9);return[`${a} + ${b}`,a+b];},
+    ()=>{const a=Math.ceil(Math.random()*5)+5,b=Math.ceil(Math.random()*5);return[`${a} - ${b}`,a-b];},
+    ()=>{const a=Math.ceil(Math.random()*5),b=Math.ceil(Math.random()*5);return[`${a} x ${b}`,a*b];},
+  ];
+  const [q,ans] = ops[Math.floor(Math.random()*ops.length)]();
+  captchaAnswer = ans;
+  document.getElementById('captchaQuestion').textContent = '¿Cuánto es '+q+'?';
+  document.getElementById('captchaAnswer').value = '';
+  document.getElementById('captchaAnswer').classList.remove('error');
+}
+
+async function submitCard() {
+  if (myPlays < PLAYS_TO_UNLOCK) return;
+  const text = document.getElementById('cardText').value.trim();
+  const author = document.getElementById('authorName').value.trim() || 'Anónimo';
+  if (!text) { showToast('Escribí algo primero 👀','info'); return; }
+  if (text.length < 10) { showToast('Muy corto, escribí más ✏️','info'); return; }
+  const userAns = parseInt(document.getElementById('captchaAnswer').value);
+  if (isNaN(userAns) || userAns !== captchaAnswer) {
+    document.getElementById('captchaAnswer').classList.add('error');
+    setTimeout(()=>document.getElementById('captchaAnswer').classList.remove('error'),500);
+    showToast('Respuesta incorrecta 🤖','error'); generateCaptcha(); return;
+  }
+  const btn = document.getElementById('submitBtn');
+  btn.disabled=true; btn.textContent='Guardando...';
+  try {
+    const newCard = {type:selectedType,mode:selectedFormMode,text,author,playerId,createdAt:serverTimestamp(),starter:false};
+    const ref = await addDoc(collection(db,CARDS_COL), newCard);
+    renderCard({...newCard,id:ref.id});
+    document.getElementById('cardText').value='';
+    document.getElementById('authorName').value='';
+    generateCaptcha();
+    showToast('¡Carta agregada y en juego! 🎉','success');
+    document.getElementById('cardWrap').scrollIntoView({behavior:'smooth',block:'center'});
+  } catch(e) { console.error(e); showToast('Error al guardar, intentá de nuevo','error'); }
+  btn.disabled=false; btn.textContent='AGREGAR AL MAZO →';
+}
+
+function filterList(type, el) {
+  currentFilter = type;
+  document.querySelectorAll('.filter-tab').forEach(b => b.className='filter-tab');
+  el.className = 'filter-tab f-active-'+type;
+  renderList();
+}
+
+function renderList() {
+  const list = document.getElementById('listItems');
+  let f = allCards.filter(c=>c.mode===currentMode);
+  if (currentFilter!=='all') f=f.filter(c=>c.type===currentFilter);
+  f = [...f].reverse();
+  if (!f.length) { list.innerHTML='<div class="list-empty">No hay cartas todavía en este modo</div>'; return; }
+  list.innerHTML = f.map(c=>`
+    <div class="list-item">
+      <span class="badge ${c.type==='truth'?'badge-t':'badge-d'}">${c.type==='truth'?'V':'R'}</span>
+      <div>
+        <div class="list-item-text">${esc(c.text)}</div>
+        <div class="list-item-by">${c.starter?'Carta base':'— '+(c.author||'Anónimo')}</div>
+      </div>
+    </div>`).join('');
+}
+
+function showToast(msg,type='info') {
+  const t=document.getElementById('toast');
+  t.textContent=msg; t.className='toast '+type; t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),3000);
+}
+function showConn(online) {
+  const bar=document.getElementById('connBar');
+  if (online) { bar.className='conn-bar online'; bar.textContent='🟢 Conectado en tiempo real'; setTimeout(()=>bar.className='conn-bar',3000); }
+  else { bar.className='conn-bar offline'; bar.textContent='🔴 Sin conexión'; }
+}
+function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+
+// EVENT LISTENERS
+document.getElementById('modeNormal').addEventListener('click',()=>enterMode('normal'));
+document.getElementById('modePicante').addEventListener('click',()=>enterMode('picante'));
+document.getElementById('modeExtremo').addEventListener('click',()=>enterMode('extremo'));
+document.getElementById('backBtn').addEventListener('click',goBack);
+document.getElementById('btnTruth').addEventListener('click',()=>drawCard('truth'));
+document.getElementById('btnDare').addEventListener('click',()=>drawCard('dare'));
+document.getElementById('togTruth').addEventListener('click',()=>setType('truth'));
+document.getElementById('togDare').addEventListener('click',()=>setType('dare'));
+document.getElementById('togNormal').addEventListener('click',()=>setFormMode('normal'));
+document.getElementById('togPicante').addEventListener('click',()=>setFormMode('picante'));
+document.getElementById('togExtremo').addEventListener('click',()=>setFormMode('extremo'));
+document.getElementById('submitBtn').addEventListener('click',submitCard);
+document.getElementById('captchaRefresh').addEventListener('click',generateCaptcha);
+document.querySelectorAll('.filter-tab').forEach(btn=>{
+  btn.addEventListener('click',()=>filterList(btn.dataset.filter,btn));
+});
+
+init();
+</script>
+</body>
+</html>

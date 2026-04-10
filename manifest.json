@@ -1,0 +1,21 @@
+{
+  "name": "Verdad o Reto",
+  "short_name": "Verdad o Reto",
+  "id": "verdad-o-reto",
+  "description": "El juego de Verdad o Reto que construye la comunidad",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#080810",
+  "theme_color": "#fbbf24",
+  "lang": "es",
+  "icons": [
+    {
+      "src": "icono.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
