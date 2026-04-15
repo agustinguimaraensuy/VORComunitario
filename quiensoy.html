@@ -4,92 +4,43 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-<title>¿QUIÉN SOY? - FIX ROTACIÓN</title>
+<title>¿QUIÉN SOY? - PROBABILIDAD FIJADA</title>
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@700&display=swap" rel="stylesheet">
 <style>
   :root {
-    --bg:#050505; --accent:#00ff88; --text:#ffffff; --muted:#444; --border:#222;
+    --bg:#050505; --accent:#00ff88; --red:#ff4444; --text:#ffffff; --muted:#444; --border:#222;
   }
   *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
   
-  body{
-    background:var(--bg); color:var(--text); 
-    font-family:'DM Sans',sans-serif; min-height:100vh;
-    display:flex; flex-direction:column; align-items:center;
-    overflow: hidden;
-  }
+  body{ background:var(--bg); color:var(--text); font-family:'DM Sans',sans-serif; min-height:100vh; display:flex; flex-direction:column; align-items:center; overflow: hidden; }
 
-  /* PANTALLAS VERTICALES */
   .screen{ display:none; width:100%; max-width:500px; padding:30px; flex-direction:column; align-items:center; justify-content:center; flex-grow:1;}
   .active{ display:flex; }
 
-  /* PANTALLA DE JUEGO (ROTADA) */
-  #gameScreen.active {
-    display: flex;
-    position: fixed;
-    top: 0; left: 0; width: 100vw; height: 100vh;
-    background: var(--bg);
-    z-index: 1000;
-    justify-content: center;
-    align-items: center;
-  }
+  /* PANTALLA DE JUEGO ROTADA */
+  #gameScreen.active { display: flex; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: var(--bg); z-index: 1000; justify-content: center; align-items: center; }
 
-  .rotate-container {
-    transform: rotate(90deg);
-    width: 100vh; 
-    height: 100vw;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    text-align: center;
-  }
+  .rotate-container { transform: rotate(90deg); width: 100vh; height: 100vw; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; }
 
-  #nameDisplay{ 
-    font-family:'Bebas Neue'; 
-    font-size: clamp(50px, 14vh, 100px); 
-    text-transform: uppercase; 
-    line-height: 1;
-    color: var(--accent);
-    margin: 30px 0;
-    text-wrap: balance;
-    max-width: 85vh;
-  }
+  #nameDisplay{ font-family:'Bebas Neue'; font-size: clamp(45px, 12vh, 90px); text-transform: uppercase; line-height: 1; color: var(--accent); margin: 20px 0; text-wrap: balance; max-width: 85vh; }
 
-  .timer-box {
-    font-family: 'Bebas Neue';
-    font-size: 35px;
-    background: #111;
-    padding: 5px 25px;
-    border-radius: 10px;
-    border: 1px solid var(--border);
-  }
+  .timer-box { font-family: 'Bebas Neue'; font-size: 30px; background: #111; padding: 5px 20px; border-radius: 10px; border: 1px solid var(--border); }
 
-  .btn-exit-game {
-    margin-top: 40px;
-    padding: 15px 35px;
-    background: #1a1a1a;
-    color: var(--accent);
-    border: 2px solid var(--accent);
-    border-radius: 12px;
-    font-family: 'Bebas Neue';
-    font-size: 22px;
-    cursor: pointer;
-  }
+  /* VOTACIÓN */
+  .vote-box { display: flex; gap: 40px; margin-top: 20px; }
+  .btn-vote { background: #1a1a1a; border: 2px solid var(--border); border-radius: 50%; width: 70px; height: 70px; font-size: 30px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: 0.2s; }
+  .btn-vote.up { border-color: var(--accent); color: var(--accent); }
+  .btn-vote.down { border-color: var(--red); color: var(--red); }
+  .btn-vote.voted { opacity: 0.2; pointer-events: none; filter: grayscale(1); }
 
-  /* ESTILOS MENÚ */
-  .logo-text{ font-family:'Bebas Neue'; font-size:65px; color:var(--accent); line-height:0.9; margin-bottom:20px;}
+  .btn-exit { margin-top: 30px; padding: 12px 30px; background: none; color: #666; border: 1px solid #333; border-radius: 10px; font-family: 'Bebas Neue'; font-size: 18px; cursor: pointer; }
+
+  /* MENÚ */
+  .logo-text{ font-family:'Bebas Neue'; font-size:60px; color:var(--accent); line-height:0.9; margin-bottom:20px;}
   .btn-main{ background:var(--accent); color:#000; border:none; padding:20px; font-family:'Bebas Neue'; font-size:28px; border-radius:15px; cursor:pointer; width:100%;}
-  
-  .add-box{ 
-    background:#111; width:100%; padding:20px; 
-    border-radius:20px; border:1px solid var(--border); margin-top:30px;
-  }
+  .add-box{ background:#111; width:100%; padding:20px; border-radius:20px; border:1px solid var(--border); margin-top:30px; }
   .add-box.locked{ opacity:0.1; pointer-events:none; }
-  
   input{ width:100%; background:#000; border:1px solid var(--border); color:#fff; padding:12px; border-radius:10px; margin-top:10px; text-align:center;}
-  .captcha-wrap{ display:flex; align-items:center; justify-content:center; gap:10px; margin:15px 0;}
-
   .btn-back{ position:absolute; top:20px; left:20px; background:none; border:none; color:var(--muted); font-family:'Bebas Neue'; font-size:16px; z-index:2000;}
 </style>
 </head>
@@ -102,18 +53,17 @@
     <button class="btn-main" onclick="startTimer()">JUGAR AHORA</button>
 
     <div class="add-box locked" id="addBox">
-      <p id="progText" style="font-size:11px; color:var(--muted); letter-spacing:1px;">JUGÁ 5 VECES PARA AGREGAR (0/5)</p>
+      <p id="progText" style="font-size:11px; color:var(--muted);">JUGÁ 5 VECES PARA AGREGAR (0/5)</p>
       <input type="text" id="newName" placeholder="Nombre del personaje">
-      <div class="captcha-wrap">
+      <div style="display:flex; align-items:center; justify-content:center; gap:10px; margin:15px 0;">
         <span id="captchaQ"></span>
         <input type="number" id="captchaA" style="width:70px; margin-top:0;">
       </div>
-      <button onclick="addNewCharacter()" style="background:var(--accent); color:#000; border:none; padding:12px; width:100%; border-radius:10px; font-family:'Bebas Neue'; font-size:18px; cursor:pointer;">SUBIR AL MAZO</button>
+      <button onclick="addNewCharacter()" style="background:var(--accent); color:#000; border:none; padding:12px; width:100%; border-radius:10px; font-family:'Bebas Neue'; font-size:18px; cursor:pointer;">SUBIR</button>
     </div>
   </div>
 
   <div class="screen" id="timerScreen">
-    <p style="letter-spacing:5px; color:var(--muted); margin-bottom:20px;">PREPARATE</p>
     <div style="font-family:'Bebas Neue'; font-size:130px; color:var(--accent);" id="countdown">5</div>
     <p style="color:var(--muted); font-size:14px;">Pegate el cel a la frente</p>
   </div>
@@ -122,13 +72,19 @@
     <div class="rotate-container">
       <div class="timer-box" id="gameTimer">03:00</div>
       <div id="nameDisplay">---</div>
-      <button class="btn-exit-game" onclick="location.reload()">TERMINAR PARTIDA</button>
+      
+      <div class="vote-box" id="voteControls">
+        <button class="btn-vote up" onclick="vote(true)">👍</button>
+        <button class="btn-vote down" onclick="vote(false)">👎</button>
+      </div>
+
+      <button class="btn-exit" onclick="location.reload()">SIGUIENTE / SALIR</button>
     </div>
   </div>
 
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-  import { getFirestore, collection, addDoc, onSnapshot, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+  import { getFirestore, collection, addDoc, onSnapshot, serverTimestamp, doc, updateDoc, increment } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
   const firebaseConfig = {
     apiKey: "AIzaSyDTtD4dXW1r1RWLDSOWUGIiqskAavP1Zz0",
@@ -141,18 +97,18 @@
 
   const app = initializeApp(firebaseConfig);
   const db = getFirestore(app);
-  let cloudNames = [];
+  let allCharacters = [];
+  let currentId = null;
   let correctSum = 0;
   let plays = parseInt(localStorage.getItem('plays_quien')) || 0;
 
   onSnapshot(collection(db, 'who_am_i'), (snap) => {
-    cloudNames = snap.docs.map(doc => doc.data().name);
+    allCharacters = snap.docs.map(d => ({ id: d.id, ...d.data() }));
     updateProgress();
   });
 
   function genCaptcha() {
-    const a = Math.floor(Math.random()*9)+1;
-    const b = Math.floor(Math.random()*9)+1;
+    const a = Math.floor(Math.random()*9)+1, b = Math.floor(Math.random()*9)+1;
     correctSum = a + b;
     document.getElementById('captchaQ').innerText = `${a} + ${b} =`;
   }
@@ -170,45 +126,66 @@
   };
 
   function runGame() {
-    const pool = cloudNames.length > 0 ? cloudNames : ["Lionel Messi", "Ricardo Fort"];
-    document.getElementById('nameDisplay').innerText = pool[Math.floor(Math.random()*pool.length)];
+    if(allCharacters.length === 0) return;
+
+    // ALGORITMO DE PESOS (25% arriba / 25% abajo)
+    let pool = [];
+    allCharacters.forEach(char => {
+        const likes = char.likes || 0;
+        const dislikes = char.dislikes || 0;
+        const total = likes + dislikes;
+        const ratio = total === 0 ? 0.5 : likes / total;
+
+        // Peso base = 100 tickets
+        let tickets = 100;
+
+        if (ratio >= 0.6) tickets = 125; // +25% de chance
+        else if (ratio <= 0.4 && total > 2) tickets = 75; // -25% de chance
+
+        for(let i=0; i < tickets; i++) pool.push(char);
+    });
+
+    const selected = pool[Math.floor(Math.random() * pool.length)];
+    currentId = selected.id;
+    document.getElementById('nameDisplay').innerText = selected.name;
     
     document.getElementById('timerScreen').classList.remove('active');
     document.getElementById('gameScreen').classList.add('active');
 
-    let secondsLeft = 180; 
+    let secondsLeft = 180;
     const gameInt = setInterval(() => {
       secondsLeft--;
-      let m = Math.floor(secondsLeft / 60);
-      let s = secondsLeft % 60;
-      document.getElementById('gameTimer').innerText = `${m.toString().padStart(2,'0')}:${s.toString().padStart(2,'0')}`;
-      if(secondsLeft <= 0) { clearInterval(gameInt); document.getElementById('nameDisplay').innerText = "¡TIEMPO!"; }
+      let m = Math.floor(secondsLeft / 60), s = secondsLeft % 60;
+      document.getElementById('gameTimer').innerText = `${m}:${s.toString().padStart(2,'0')}`;
+      if(secondsLeft <= 0) clearInterval(gameInt);
     }, 1000);
 
     plays++;
     localStorage.setItem('plays_quien', plays);
   }
 
+  window.vote = async (isLike) => {
+    if(!currentId) return;
+    document.getElementById('voteControls').classList.add('voted');
+    await updateDoc(doc(db, 'who_am_i', currentId), {
+        [isLike ? 'likes' : 'dislikes']: increment(1)
+    });
+  };
+
   function updateProgress() {
     const box = document.getElementById('addBox');
     const txt = document.getElementById('progText');
-    if(plays >= 5) {
-      box.classList.remove('locked');
-      txt.innerText = "✅ YA PODÉS COLABORAR";
-      txt.style.color = "var(--accent)";
-    } else {
-      txt.innerText = `JUGÁ 5 VECES PARA AGREGAR (${plays}/5)`;
-    }
+    if(plays >= 5) { box.classList.remove('locked'); txt.innerText = "✅ PODÉS AGREGAR"; }
+    else { txt.innerText = `JUGÁ 5 VECES PARA AGREGAR (${plays}/5)`; }
   }
 
   window.addNewCharacter = async () => {
     const val = document.getElementById('newName').value.trim();
     const ans = parseInt(document.getElementById('captchaA').value);
     if(val.length < 2 || ans !== correctSum) return alert("Revisá los datos.");
-    await addDoc(collection(db, 'who_am_i'), { name: val, createdAt: serverTimestamp() });
-    alert("¡Enviado con éxito!");
-    document.getElementById('newName').value = "";
-    genCaptcha();
+    await addDoc(collection(db, 'who_am_i'), { name: val, likes: 0, dislikes: 0, createdAt: serverTimestamp() });
+    alert("¡Subido!");
+    location.reload();
   };
 </script>
 </body>
