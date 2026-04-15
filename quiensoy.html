@@ -1,111 +1,138 @@
 
+Entendido. Vamos a hacer un cambio estructural inteligente: el Menú y la pantalla de Carga funcionarán en vertical (como cualquier app), pero la Pantalla de Juego (donde sale el nombre) aplicará una rotación de 90 
+∘
+  por software.
+
+De esta forma, podés manejar el menú normalmente y, al momento de jugar, simplemente te pegás el celular a la frente de forma horizontal y el nombre aparecerá derecho para tus amigos.
+
+Aquí tenés el código actualizado de quiensoy.html:
+
+HTML
 <!DOCTYPE html>
 <html lang="es">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-<title>¿QUIÉN SOY? - FIX</title>
+<title>¿QUIÉN SOY? - SMART ROTATE</title>
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@700&display=swap" rel="stylesheet">
 <style>
   :root {
     --bg:#050505; --accent:#00ff88; --text:#ffffff; --muted:#444; --border:#222;
   }
-  *{margin:0;padding:0;box-sizing:border-box;}
+  *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
   
-  @media screen and (orientation: portrait) {
-    #rotate-warning { display: flex !important; }
-  }
-
   body{
     background:var(--bg); color:var(--text); 
     font-family:'DM Sans',sans-serif; min-height:100vh;
-    display:flex; align-items:center; justify-content:center;
-    text-align:center; overflow:hidden;
+    display:flex; flex-direction:column; align-items:center;
   }
 
-  #rotate-warning {
-    position:fixed; top:0; left:0; width:100%; height:100%;
-    background:var(--bg); z-index:10000; display:none;
-    flex-direction:column; align-items:center; justify-content:center;
-  }
-
-  .screen{ display:none; width:100%; height:100vh; padding:20px; flex-direction:column; align-items:center; justify-content:center; position:relative;}
+  /* Pantallas Verticales (Menú y Carga) */
+  .screen{ display:none; width:100%; max-width:500px; padding:30px; flex-direction:column; align-items:center; justify-content:center; flex-grow:1;}
   .active{ display:flex; }
 
-  /* FIX NOMBRES LARGOS */
+  /* PANTALLA DE JUEGO (ROTADA POR SOFTWARE) */
+  #gameScreen.active {
+    display: flex;
+    position: fixed;
+    top: 0; left: 0; width: 100vw; height: 100vh;
+    background: var(--bg);
+    z-index: 1000;
+    justify-content: center;
+    align-items: center;
+  }
+
+  /* El contenedor que gira el nombre */
+  .rotate-container {
+    transform: rotate(90deg); /* Gira el contenido 90 grados */
+    width: 100vh; /* Altura se vuelve ancho */
+    height: 100vw; /* Ancho se vuelve altura */
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+  }
+
   #nameDisplay{ 
     font-family:'Bebas Neue'; 
-    font-size: clamp(40px, 12vw, 90px); /* Tamaño más controlado */
+    font-size: clamp(50px, 15vh, 100px); 
     text-transform: uppercase; 
     line-height: 1;
     color: var(--accent);
-    margin: 10px 0;
-    max-width: 90vw;
-    word-wrap: break-word;
-    text-wrap: balance; /* Distribuye el texto en dos líneas si es largo */
+    margin: 20px 0;
+    text-wrap: balance;
+    max-width: 80vh;
   }
 
   .timer-box {
     font-family: 'Bebas Neue';
     font-size: 30px;
-    color: var(--text);
     background: #111;
-    padding: 5px 15px;
+    padding: 5px 20px;
     border-radius: 10px;
-    margin-bottom: 10px;
   }
 
-  /* FIX FORMULARIO - Solo en menú para que no tape el juego */
+  /* Estilos Menú (Vertical) */
+  .logo-text{ font-family:'Bebas Neue'; font-size:60px; color:var(--accent); line-height:0.9; margin-bottom:20px;}
+  .btn-main{ background:var(--accent); color:#000; border:none; padding:20px; font-family:'Bebas Neue'; font-size:28px; border-radius:15px; cursor:pointer; width:100%;}
+  
   .add-box{ 
-    background:#111; width:95%; max-width:650px; padding:12px; 
-    border-radius:15px; border:1px solid var(--border); 
-    display:flex; flex-direction:row; gap:10px; align-items:center;
-    margin-top: 15px;
+    background:#111; width:100%; padding:20px; 
+    border-radius:20px; border:1px solid var(--border); margin-top:30px;
   }
   .add-box.locked{ opacity:0.1; pointer-events:none; }
   
-  .btn-main{ background:var(--accent); color:#000; border:none; padding:12px 25px; font-family:'Bebas Neue'; font-size:22px; border-radius:10px; cursor:pointer; z-index: 100;}
-  .btn-back{ position:absolute; top:10px; left:10px; background:none; border:none; color:var(--muted); font-family:'Bebas Neue'; font-size:14px; z-index: 500;}
+  input{ width:100%; background:#000; border:1px solid var(--border); color:#fff; padding:12px; border-radius:10px; margin-top:10px; text-align:center;}
+  .captcha-wrap{ display:flex; align-items:center; justify-content:center; gap:10px; margin:10px 0;}
+
+  .btn-back{ position:absolute; top:20px; left:20px; background:none; border:none; color:var(--muted); font-family:'Bebas Neue'; font-size:16px;}
   
-  input{ background:#000; border:1px solid var(--border); color:#fff; padding:6px; border-radius:5px; font-size: 14px;}
+  /* Botón flotante para salir del modo rotado */
+  .btn-exit-game {
+    position: absolute;
+    bottom: 20px;
+    padding: 10px 20px;
+    background: #222;
+    color: #fff;
+    border: none;
+    border-radius: 5px;
+    font-family: 'Bebas Neue';
+    font-size: 16px;
+    transform: rotate(90deg); /* También rotado para que el que mira pueda leerlo */
+  }
 </style>
 </head>
 <body>
 
-  <div id="rotate-warning">
-    <div style="font-size: 40px;">🔄</div>
-    <p style="font-family:'Bebas Neue'; font-size:20px;">MODO HORIZONTAL</p>
-  </div>
-
   <button class="btn-back" onclick="location.href='index.html'">← SALIR</button>
 
   <div class="screen active" id="menu">
-    <div style="font-family:'Bebas Neue'; font-size:40px; color:var(--accent); margin-bottom:10px;">¿QUIÉN SOY?</div>
-    <button class="btn-main" onclick="startTimer()">¡EMPEZAR JUEGO!</button>
+    <div class="logo-text">¿QUIÉN<br>SOY?</div>
+    <button class="btn-main" onclick="startTimer()">JUGAR AHORA</button>
 
     <div class="add-box locked" id="addBox">
-      <div style="flex:2">
-        <p id="progText" style="font-size:9px; color:var(--muted); margin-bottom:3px;">5 JUEGOS PARA AGREGAR (0/5)</p>
-        <input type="text" id="newName" placeholder="Nombre del famoso..." style="width:100%">
+      <p id="progText" style="font-size:11px; color:var(--muted);">5 JUEGOS PARA AGREGAR (0/5)</p>
+      <input type="text" id="newName" placeholder="Nombre de famoso o personaje">
+      <div class="captcha-wrap">
+        <span id="captchaQ"></span>
+        <input type="number" id="captchaA" style="width:70px; margin-top:0;">
       </div>
-      <div style="flex:1">
-        <p id="captchaQ" style="font-size:10px; margin-bottom:3px;"></p>
-        <input type="number" id="captchaA" style="width:100%">
-      </div>
-      <button onclick="addNewCharacter()" style="background:var(--accent); border:none; padding:10px; border-radius:5px; font-family:'Bebas Neue'; cursor:pointer; flex:0.5">OK</button>
+      <button onclick="addNewCharacter()" style="background:none; border:1px solid var(--accent); color:var(--accent); padding:10px; width:100%; border-radius:10px; font-family:'Bebas Neue';">SUBIR</button>
     </div>
   </div>
 
   <div class="screen" id="timerScreen">
-    <div style="font-family:'Bebas Neue'; font-size:80px; color:var(--accent);" id="countdown">5</div>
-    <p style="letter-spacing:3px; color:var(--muted)">¡A LA FRENTE!</p>
+    <p style="letter-spacing:5px; color:var(--muted); margin-bottom:20px;">PREPARATE</p>
+    <div style="font-family:'Bebas Neue'; font-size:120px; color:var(--accent);" id="countdown">5</div>
+    <p style="color:var(--muted);">Pegate el cel a la frente</p>
   </div>
 
   <div class="screen" id="gameScreen">
-    <div class="timer-box" id="gameTimer">03:00</div>
-    <div id="nameDisplay">---</div>
-    <div style="margin-top: 15px;">
-        <button class="btn-main" onclick="location.reload()">TERMINAR / SIGUIENTE</button>
+    <div class="rotate-container">
+      <div class="timer-box" id="gameTimer">03:00</div>
+      <div id="nameDisplay">---</div>
+      <button class="btn-exit-game" onclick="location.reload()">TERMINAR PARTIDA</button>
     </div>
   </div>
 
@@ -126,8 +153,6 @@
   const db = getFirestore(app);
   let cloudNames = [];
   let correctSum = 0;
-
-  // Persistencia simple de jugadas para desbloquear el form
   let plays = parseInt(localStorage.getItem('plays_quien')) || 0;
 
   onSnapshot(collection(db, 'who_am_i'), (snap) => {
@@ -167,13 +192,9 @@
       let m = Math.floor(secondsLeft / 60);
       let s = secondsLeft % 60;
       document.getElementById('gameTimer').innerText = `${m.toString().padStart(2,'0')}:${s.toString().padStart(2,'0')}`;
-      if(secondsLeft <= 0) {
-        clearInterval(gameInt);
-        document.getElementById('nameDisplay').innerText = "¡TIEMPO!";
-      }
+      if(secondsLeft <= 0) { clearInterval(gameInt); }
     }, 1000);
 
-    // Guardar progreso
     plays++;
     localStorage.setItem('plays_quien', plays);
   }
@@ -183,20 +204,19 @@
     const txt = document.getElementById('progText');
     if(plays >= 5) {
       box.classList.remove('locked');
-      txt.innerText = "✅ PODÉS COLABORAR";
+      txt.innerText = "✅ YA PODÉS AGREGAR NOMBRES";
       txt.style.color = "var(--accent)";
     } else {
-      txt.innerText = `5 JUEGOS PARA AGREGAR (${plays}/5)`;
+      txt.innerText = `JUGÁ 5 VECES PARA AGREGAR (${plays}/5)`;
     }
   }
 
   window.addNewCharacter = async () => {
     const val = document.getElementById('newName').value.trim();
     const ans = parseInt(document.getElementById('captchaA').value);
-    if(val.length < 2 || ans !== correctSum) return alert("Revisá los datos.");
-
+    if(val.length < 2 || ans !== correctSum) return alert("Error en los datos.");
     await addDoc(collection(db, 'who_am_i'), { name: val, createdAt: serverTimestamp() });
-    alert("¡Personaje enviado!");
+    alert("¡Enviado!");
     document.getElementById('newName').value = "";
     genCaptcha();
   };
