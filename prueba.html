@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Súper Cargador 600 - Shot Master</title>
+    <style>
+        body { background: #0a0a0a; color: white; font-family: 'DM Sans', sans-serif; text-align: center; padding: 50px; }
+        .box { background: #151515; padding: 30px; border-radius: 20px; border: 1px solid #333; display: inline-block; }
+        button { background: #facc15; padding: 20px 40px; border: none; font-weight: bold; cursor: pointer; border-radius: 10px; font-size: 18px; }
+        button:disabled { background: #444; cursor: not-allowed; }
+        #log { margin-top: 20px; font-family: monospace; font-size: 12px; color: #888; text-align: left; max-height: 200px; overflow-y: auto; width: 400px; margin-left: auto; margin-right: auto; }
+    </style>
+</head>
+<body>
+    <div class="box">
+        <h1>Súper Cargador de Base de Datos</h1>
+        <p>Se van a generar y subir <b>600 retos</b> (200 por modo).</p>
+        <button id="btn">INICIAR CARGA MASIVA</button>
+        <div id="status">Esperando...</div>
+        <div id="log"></div>
+    </div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getFirestore, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+const firebaseConfig = {
+    apiKey: "AIzaSyDTtD4dXW1r1RWLDSOWUGIiqskAavP1Zz0",
+    authDomain: "verdad-952a0.firebaseapp.com",
+    projectId: "verdad-952a0",
+    storageBucket: "verdad-952a0.firebasestorage.app",
+    messagingSenderId: "648263922519",
+    appId: "1:648263922519:web:3e3f04d3bf0b2ad13f4412"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+// LÓGICA DE GENERACIÓN MASIVA
+const sujetos = ["El que", "Todos los que", "La persona que", "Si vos", "Los que no"];
+const castigos = ["toman 1 shot", "toman 2 shots", "toman un fondo blanco", "toman un trago largo"];
+
+const temas = {
+    normal: ["tengan iPhone", "usen Instagram", "sepan silbar", "tengan un perro", "vivan con sus viejos", "hayan ido al gimnasio hoy", "estén usando jean", "tengan medias de colores", "hayan tomado mate", "sepan cocinar", "tengan el pelo largo", "hayan viajado en bus hoy"],
+    picante: ["hayan besado a un amigo", "tengan un ex bloqueado", "hayan stalkeado a alguien recién", "tengan Tinder", "hayan enviado una foto hot", "les guste alguien de acá", "hayan mentido para tener una cita", "hayan besado a alguien mayor", "tengan un video prohibido"],
+    extremo: ["hayan sido infieles", "hayan estado presos", "hayan robado algo", "hayan estado con un/a ex de un amigo", "hayan hecho un trío", "hayan mentido sobre su identidad", "tengan un secreto ilegal", "hayan estado en un hotel hoy"]
+};
+
+function generarRetos(modo, cantidad) {
+    let lista = [];
+    for(let i=0; i<cantidad; i++) {
+        const s = sujetos[Math.floor(Math.random()*sujetos.length)];
+        const t = temas[modo][Math.floor(Math.random()*temas[modo].length)];
+        const c = castigos[Math.floor(Math.random()*castigos.length)];
+        lista.push(`${s} ${t}, ${c}. (#${i+1})`);
+    }
+    return lista;
+}
+
+document.getElementById('btn').onclick = async () => {
+    const btn = document.getElementById('btn');
+    const status = document.getElementById('status');
+    const log = document.getElementById('log');
+    btn.disabled = true;
+    
+    const modos = ['normal', 'picante', 'extremo'];
+    let totalCargado = 0;
+
+    for (const modo of modos) {
+        status.innerHTML = `Cargando modo: <b>${modo.toUpperCase()}</b>...`;
+        const lista = generarRetos(modo, 200); // 200 retos por modo
+        
+        for (const texto of lista) {
+            try {
+                await addDoc(collection(db, 'shots_cards'), {
+                    mode: modo,
+                    text: texto,
+                    createdAt: serverTimestamp()
+                });
+                totalCargado++;
+                log.innerHTML = `[OK] ${totalCargado}/600: ${texto.substring(0,30)}...<br>` + log.innerHTML;
+            } catch (e) {
+                console.error(e);
+            }
+        }
+    }
+    
+    status.innerText = "¡PROCESO COMPLETADO! 600 RETOS EN FIREBASE.";
+    status.style.color = "#10b981";
+};
+</script>
+</body>
+</html>
