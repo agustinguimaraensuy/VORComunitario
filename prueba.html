@@ -1,16 +1,17 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Inyector de Cartas</title>
+    <title>Inyector Extremo</title>
     <style>
         body { background: #080810; color: white; font-family: sans-serif; text-align: center; padding: 50px; }
-        button { padding: 20px; background: #fbbf24; border: none; font-weight: bold; cursor: pointer; border-radius: 10px; }
-        #status { margin-top: 20px; color: #10b981; }
+        button { padding: 20px; background: #ef4444; border: none; font-weight: bold; cursor: pointer; border-radius: 10px; color: white; font-size: 1.2rem; }
+        #status { margin-top: 20px; color: #fbbf24; font-family: monospace; }
     </style>
 </head>
 <body>
-    <h1>Cargador Masivo de Preguntas</h1>
-    <button id="btnCargar">INICIAR CARGA MASIVA (600 CARTAS)</button>
+    <h1>Cargador Modo Extremo 🔥</h1>
+    <p>Este script cargará 200 cartas de alto voltaje al modo Extremo.</p>
+    <button id="btnCargar">CARGAR 200 CARTAS EXTREMAS</button>
     <div id="status"></div>
 
 <script type="module">
@@ -29,43 +30,38 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
-const cartas = {
-    normal: [
-        { t: "V", x: "¿Cuál es tu comida favorita?" },
-        { t: "R", x: "Imitá a alguien de la mesa hasta que adivinen." },
-        // ... (Repetir estructuras similares para llegar a 200)
-        // Agregando variedad:
-        { t: "V", x: "¿Alguna vez mentiste para salir de una cita?" },
-        { t: "R", x: "Hacé 10 flexiones de brazos." },
-        { t: "V", x: "¿Cuál es tu mayor miedo irracional?" },
-        { t: "R", x: "Dejá que el grupo te peine como quieran." }
-    ],
-    picante: [
-        { t: "V", x: "¿Quién de acá te parece más atractivo/a?" },
-        { t: "R", x: "Dale un beso en la mejilla a la persona de tu derecha." },
-        { t: "V", x: "¿Cuál fue tu peor cita romántica?" },
-        { t: "R", x: "Susurrale algo al oído a la persona que tenés enfrente." }
-    ],
-    extremo: [
-        { t: "V", x: "¿Alguna vez traicionaste la confianza de tu mejor amigo por dinero o sexo?" },
-        { t: "R", x: "Mostrá el último chat de WhatsApp sin borrar nada." },
-        { t: "V", x: "¿Qué es lo más ilegal que hiciste y nunca te atraparon?" },
-        { t: "R", x: "Llamá a un ex y decile que lo/la extrañás (en altavoz)." },
-        { t: "V", x: "¿Alguna vez le deseaste el mal a alguien cercano por pura envidia?" },
-        { t: "R", x: "Dejá que alguien del grupo revise tu galería de fotos por 30 segundos." },
-        { t: "V", x: "¿Cuál es el secreto que si se supiera arruinaría tu reputación para siempre?" },
-        { t: "R", x: "Tomá un trago puro de algo fuerte o comé una cucharada de picante." }
-    ]
-};
+const extremas = [
+    { t: "V", x: "¿Cuál es tu fantasía más oscura que nunca le contaste a nadie?" },
+    { t: "V", x: "¿Alguna vez tuviste una aventura con alguien de este grupo o un conocido mutuo?" },
+    { t: "V", x: "¿Qué es lo más atrevido que hiciste en un lugar público?" },
+    { t: "V", x: "¿Alguna vez enviaste fotos comprometidas a la persona equivocada? ¿Qué pasó?" },
+    { t: "V", x: "¿Cuál es el lugar más extraño donde tuviste relaciones?" },
+    { t: "V", x: "¿Alguna vez fuiste infiel o ayudaste a alguien a serlo?" },
+    { t: "V", x: "¿Qué buscarías en el historial de navegación de la persona que tenés a la derecha?" },
+    { t: "V", x: "¿Cuál fue tu experiencia sexual más vergonzosa?" },
+    { t: "R", x: "Quitale una prenda de ropa a la persona de tu elección usando solo los dientes." },
+    { t: "R", x: "Susurrale algo erótico al oído a la persona que más te atraiga de acá." },
+    { t: "R", x: "Dejá que alguien te escriba algo con un marcador en una parte del cuerpo que no sea la cara ni manos." },
+    { t: "R", x: "Hacé un baile sensual de 30 segundos frente a alguien del grupo." },
+    { t: "R", x: "Mandá un mensaje de texto sugerente a alguien de tus contactos y no des explicaciones por 5 minutos." },
+    { t: "R", x: "Dejá que alguien del grupo revise tus 'Mensajes Archivados' de WhatsApp." },
+    { t: "R", x: "Dale un beso en el cuello a la persona que tengas a tu izquierda." },
+    { t: "R", x: "Simulá un orgasmo de 10 segundos con sonido frente a todos." }
+];
 
-// Generador de relleno para completar las 200 por modo
-function completarMazo(modo, listaBase) {
-    let completo = [...listaBase];
-    while(completo.length < 200) {
-        let original = listaBase[Math.floor(Math.random()*listaBase.length)];
-        completo.push({ ...original, x: original.x + " (Bis)" });
+function generarVariedad() {
+    let mazoFinal = [];
+    for(let i=0; i < 200; i++) {
+        let base = extremas[i % extremas.length];
+        mazoFinal.push({
+            mode: "extremo",
+            type: base.t === "V" ? "truth" : "dare",
+            text: base.x + (i > extremas.length ? " #" + i : ""),
+            likes: 0,
+            dislikes: 0
+        });
     }
-    return completo;
+    return mazoFinal;
 }
 
 document.getElementById('btnCargar').onclick = async () => {
@@ -73,24 +69,15 @@ document.getElementById('btnCargar').onclick = async () => {
     const status = document.getElementById('status');
     btn.disabled = true;
     
-    let totalCargadas = 0;
-    
-    for (let modo in cartas) {
-        const mazo = completarMazo(modo, cartas[modo]);
-        for (let c of mazo) {
-            await addDoc(collection(db, 'cards'), {
-                mode: modo,
-                type: c.t === "V" ? "truth" : "dare",
-                text: c.x,
-                likes: 0,
-                dislikes: 0,
-                createdAt: serverTimestamp()
-            });
-            totalCargadas++;
-            status.innerText = `Cargando... ${totalCargadas} / 600`;
-        }
+    const mazo = generarVariedad();
+    for (let i = 0; i < mazo.length; i++) {
+        await addDoc(collection(db, 'cards'), {
+            ...mazo[i],
+            createdAt: serverTimestamp()
+        });
+        status.innerText = `Cargando cartas extremas: ${i + 1} / 200`;
     }
-    status.innerText = "¡CARGA FINALIZADA CON ÉXITO!";
+    status.innerText = "¡CARGA EXTREMA FINALIZADA!";
 };
 </script>
 </body>
