@@ -16,7 +16,10 @@
   body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min-height:100vh;overflow-x:hidden;}
   .wrap{position:relative;z-index:1;max-width:720px;margin:0 auto;padding:0 12px 20px;}
   .screen{display:none;} .screen.active{display:block;}
-  header{text-align:center;padding:28px 0 16px;}
+  header{text-align:center;padding:28px 0 16px; position: relative;}
+  
+  .home-btn{position:absolute; top:10px; right:10px; background:var(--surface); border:1px solid var(--border); color:var(--text); padding:10px; border-radius:12px; cursor:pointer; font-size:18px;}
+  
   .logo{font-family:'Bebas Neue',sans-serif;font-size:clamp(56px,12vw,100px);line-height:0.88;letter-spacing:3px;background:linear-gradient(135deg,var(--truth) 0%,var(--accent) 50%,var(--dare) 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
   .tagline{margin-top:8px;color:var(--muted);font-size:11px;letter-spacing:4px;text-transform:uppercase;}
   
@@ -46,11 +49,12 @@
 
   .card{width:100%;padding:24px;border-radius:16px;border:1px solid var(--border);background:var(--surface);min-height:150px;display:flex;flex-direction:column;justify-content:center;margin-bottom:15px;}
   .truth-card{border-left:5px solid var(--truth);} .dare-card{border-left:5px solid var(--dare);}
-  .card-text{font-size:19px; line-height:1.4; font-weight:500;}
+  .card-text{font-size:19px; line-height:1.4; font-weight:500; text-align: center;}
 
   .vote-box { display: flex; gap: 10px; margin-top: 20px; border-top: 1px solid var(--border); padding-top: 15px; }
-  .vote-btn { background: var(--bg); border: 1px solid var(--border); color: var(--text); padding: 10px 20px; border-radius: 10px; cursor: pointer; flex: 1; font-size: 18px; }
-  .vote-btn:active { background: var(--border); }
+  .vote-btn { background: var(--bg); border: 1px solid var(--border); color: var(--text); padding: 12px; border-radius: 10px; cursor: pointer; flex: 1; font-family: 'Bebas Neue'; font-size: 14px; letter-spacing: 1px; }
+  .vote-btn.btn-up:active { color: var(--green); border-color: var(--green); }
+  .vote-btn.btn-down:active { color: var(--extremo); border-color: var(--extremo); }
   
   .add-section{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:16px; margin-top: 20px;}
   .add-section.locked{opacity:0.2; pointer-events: none;}
@@ -63,6 +67,7 @@
 <div class="wrap">
   <div class="screen active" id="screenMode">
     <header>
+      <button class="home-btn" onclick="location.href='index.html'">🏠</button>
       <div class="logo">VERDAD<br>O RETO</div>
       <p class="tagline">Comunidad 🎲</p>
     </header>
@@ -100,7 +105,7 @@
 
     <div class="add-section locked" id="addSection">
       <p id="progText" style="font-size:11px; margin-bottom:10px">JUGÁ 10 VECES PARA AGREGAR</p>
-      <textarea id="cardText" placeholder="Escribe aquí..."></textarea>
+      <textarea id="cardText" placeholder="Escribe aquí tu propia verdad o reto..."></textarea>
       <button class="submit-btn" onclick="submitCard()">ENVIAR CARTA</button>
     </div>
   </div>
@@ -127,7 +132,6 @@ let currentMode = 'normal';
 let myPlays = parseInt(localStorage.getItem('vr-plays') || '0');
 let currentCardId = null;
 
-// Escuchar cartas
 onSnapshot(query(collection(db, 'cards'), orderBy('createdAt', 'desc')), (snap) => {
     allCards = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
     updateCounts();
@@ -163,10 +167,11 @@ window.drawCard = (type) => {
     filtered.forEach(card => {
         const likes = card.likes || 0;
         const dislikes = card.dislikes || 0;
-        const ratio = (likes + dislikes) === 0 ? 0.5 : likes / (likes + dislikes);
+        const total = likes + dislikes;
+        const ratio = total === 0 ? 0.5 : likes / total;
         let tickets = 100;
         if (ratio >= 0.6) tickets = 125;
-        else if (ratio <= 0.4 && (likes+dislikes) > 2) tickets = 75;
+        else if (ratio <= 0.4 && total > 2) tickets = 75;
         for(let i=0; i<tickets; i++) pool.push(card);
     });
 
@@ -177,8 +182,8 @@ window.drawCard = (type) => {
         <div class="card ${card.type}-card">
             <div class="card-text">${card.text}</div>
             <div class="vote-box" id="vbox">
-                <button class="vote-btn" onclick="vote(false)">👎</button>
-                <button class="vote-btn" onclick="vote(true)">👍</button>
+                <button class="vote-btn btn-down" onclick="vote(false)">NO ME GUSTA</button>
+                <button class="vote-btn btn-up" onclick="vote(true)">ME GUSTA</button>
             </div>
         </div>
     `;
@@ -190,9 +195,18 @@ window.drawCard = (type) => {
 
 window.vote = async (isLike) => {
     if(!currentCardId) return;
-    document.getElementById('vbox').style.opacity = "0.3";
-    document.getElementById('vbox').style.pointerEvents = "none";
-    await updateDoc(doc(db, 'cards', currentCardId), { [isLike ? 'likes' : 'dislikes']: increment(1) });
+    const box = document.getElementById('vbox');
+    box.style.opacity = "0.3";
+    box.style.pointerEvents = "none";
+    
+    try {
+        await updateDoc(doc(db, 'cards', currentCardId), { [isLike ? 'likes' : 'dislikes']: increment(1) });
+        box.innerHTML = `<span style="color:var(--green); font-size:11px; width:100%; text-align:center; letter-spacing:1px;">¡VOTO REGISTRADO!</span>`;
+    } catch(e) { 
+        console.error(e);
+        box.style.opacity = "1";
+        box.style.pointerEvents = "auto";
+    }
 };
 
 function updateProgressUI() {
@@ -210,14 +224,14 @@ window.submitCard = async () => {
     const text = document.getElementById('cardText').value.trim();
     if (text.length < 5) return alert("Escribí algo más largo.");
     await addDoc(collection(db, 'cards'), {
-        type: Math.random() > 0.5 ? 'truth' : 'dare', // Simplificado para el test
+        type: Math.random() > 0.5 ? 'truth' : 'dare',
         mode: currentMode,
         text: text,
         likes: 0, dislikes: 0,
         createdAt: serverTimestamp()
     });
     document.getElementById('cardText').value = "";
-    alert("¡Enviada!");
+    alert("¡Enviada con éxito!");
 };
 </script>
 </body>
