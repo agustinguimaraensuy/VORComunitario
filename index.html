@@ -9,57 +9,58 @@
 <style>
   :root {
     --bg:#050505; --surface:#111111; --border:#222;
-    --accent:#facc15; --text:#ffffff; --muted:#666;
+    --accent:#facc15; --game3:#00ff88; --text:#ffffff; --muted:#666;
   }
   *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
   body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif; min-height:100vh; display:flex; flex-direction:column; align-items:center;}
   
   .container{ width:100%; max-width:500px; padding:40px 20px; text-align:center;}
   
-  header{ margin-bottom:50px;}
+  header{ margin-bottom:40px;}
   .logo{ font-family:'Bebas Neue'; font-size:60px; line-height:0.9; color:var(--text); letter-spacing:2px;}
   .logo span{ color:var(--accent); }
   .tagline{ font-size:10px; letter-spacing:4px; color:var(--muted); margin-top:10px; text-transform:uppercase;}
 
-  .menu-grid{ display:grid; gap:20px; width:100%;}
+  .menu-grid{ display:grid; gap:15px; width:100%;}
   
   .game-card{
     background:var(--surface);
     border:1px solid var(--border);
-    padding:30px 20px;
+    padding:25px 20px;
     border-radius:20px;
     text-decoration:none;
     color:white;
     display:flex;
     flex-direction:column;
     align-items:center;
-    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-    position:relative;
-    overflow:hidden;
+    transition: all 0.2s ease;
   }
   
-  .game-card:active{ transform:scale(0.96); background: #1a1a1a; border-color:var(--accent);}
+  .game-card:active{ transform:scale(0.96); background: #1a1a1a; }
   
-  .icon{ font-size:40px; margin-bottom:15px;}
-  .title{ font-family:'Bebas Neue'; font-size:32px; letter-spacing:2px; margin-bottom:5px;}
-  .desc{ font-size:13px; color:var(--muted); line-height:1.2;}
+  /* Colores por juego */
+  .card-verdad{ border-left: 5px solid var(--accent); }
+  .card-shots{ border-left: 5px solid #ef4444; }
+  .card-quien{ border-left: 5px solid var(--game3); }
+
+  .icon{ font-size:32px; margin-bottom:10px;}
+  .title{ font-family:'Bebas Neue'; font-size:28px; letter-spacing:2px; margin-bottom:5px;}
+  .desc{ font-size:12px; color:var(--muted); line-height:1.2;}
 
   .btn-debug{
-    margin-top:40px;
-    padding:12px 24px;
+    margin-top:30px;
+    padding:12px;
     background:transparent;
-    border:1px dashed #444;
+    border:1px dashed #333;
     border-radius:10px;
-    color:#444;
+    color:#333;
     text-decoration:none;
-    font-size:12px;
+    font-size:11px;
     font-family:'Bebas Neue';
     letter-spacing:2px;
-    transition: 0.3s;
   }
-  .btn-debug:hover{ border-color:var(--accent); color:var(--accent); }
 
-  .footer{ margin-top:auto; padding:40px; font-size:10px; color:#333; letter-spacing:1px;}
+  .footer{ margin-top:auto; padding:30px; font-size:9px; color:#222; letter-spacing:1px;}
 </style>
 </head>
 <body>
@@ -72,27 +73,31 @@
 
   <div class="menu-grid">
     
-    <a href="verdad.html" class="game-card">
+    <a href="verdad.html" class="game-card card-verdad">
       <div class="icon">🎲</div>
       <div class="title">VERDAD O RETO</div>
-      <div class="desc">El clásico para romper el hielo.</div>
+      <div class="desc">Para sacar los trapitos al sol.</div>
     </a>
 
-    <a href="shots.html" class="game-card">
+    <a href="shots.html" class="game-card card-shots">
       <div class="icon">🥃</div>
       <div class="title">SHOT MASTER</div>
-      <div class="desc">Si perdés, tomás. Modo fiesta activado.</div>
+      <div class="desc">El que pierde, toma. Sin vueltas.</div>
     </a>
 
-    <a href="prueba.html" class="btn-debug">
-      ⚙️ ACCESO A PRUEBA.HTML
+    <a href="quiensoy.html" class="game-card card-quien">
+      <div class="icon">👤</div>
+      <div class="title">¿QUIÉN SOY?</div>
+      <div class="desc">Ponete el cel en la frente y adiviná.</div>
     </a>
+
+    <a href="prueba.html" class="btn-debug">⚙️ MODO DESARROLLADOR / PRUEBAS</a>
 
   </div>
 </div>
 
 <footer class="footer">
-  DESARROLLADO PARA LA JODA v1.1
+  VERSION 1.2 - BY GEMINI
 </footer>
 
 </body>
