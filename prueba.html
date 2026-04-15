@@ -1,20 +1,17 @@
 <!DOCTYPE html>
-<html lang="es">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <title>Cargador ¿Quién Soy? - Personas y Personajes</title>
+    <title>Inyector de Cartas</title>
     <style>
-        body { background: #050505; color: #00ff88; font-family: sans-serif; text-align: center; padding: 50px; }
-        button { background: #00ff88; padding: 20px 40px; border: none; font-weight: bold; cursor: pointer; border-radius: 10px; font-size: 1.2rem; }
-        #log { margin-top: 20px; color: #888; font-size: 12px; height: 300px; overflow-y: auto; text-align: left; max-width: 500px; margin: 20px auto; background: #111; padding: 10px; }
+        body { background: #080810; color: white; font-family: sans-serif; text-align: center; padding: 50px; }
+        button { padding: 20px; background: #fbbf24; border: none; font-weight: bold; cursor: pointer; border-radius: 10px; }
+        #status { margin-top: 20px; color: #10b981; }
     </style>
 </head>
 <body>
-    <h1>Cargador de Identidades</h1>
-    <p>Se subirán 300 nombres (Personas reales y Personajes ficticios).</p>
-    <button id="btn">CARGAR 300 NOMBRES</button>
-    <div id="status">Esperando...</div>
-    <div id="log"></div>
+    <h1>Cargador Masivo de Preguntas</h1>
+    <button id="btnCargar">INICIAR CARGA MASIVA (600 CARTAS)</button>
+    <div id="status"></div>
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
@@ -32,40 +29,68 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
-const personajes = [
-    // --- PERSONAS REALES (Uruguay / Argentina / Mundo) ---
-    "Luis Suárez", "Edinson Cavani", "Diego Forlán", "Fede Valverde", "Darwin Núñez", "Luis Lacalle Pou", "Pepe Mujica", "Tabaré Vázquez", "China Zorrilla", "Natalia Oreiro", "Jaime Roos", "Ruben Rada", "El Bananero", "Antonio Pacheco", "Álvaro Recoba", "Enzo Francescoli", "Obdulio Varela", "Sebastian Coates", "Fernando Muslera", "Jorge Drexler", "Fata Delgado", "Yao Cabrera", "El Gucci", "Carlos Páez Vilaró", "Julio Bocca",
-    "Lionel Messi", "Diego Maradona", "Ricardo Fort", "Susana Giménez", "Marcelo Tinelli", "Mirtha Legrand", "Moria Casán", "Charly García", "Gustavo Cerati", "Fito Páez", "El Kun Agüero", "Ángel Di María", "Dibu Martínez", "Julián Álvarez", "Rodrigo De Paul", "Scaloni", "Bilardo", "Menotti", "Pampita", "Juan Román Riquelme", "Martín Palermo", "Marcelo Gallardo", "Bizarrap", "Duki", "Lali Espósito", "Tini Stoessel", "Nicki Nicole", "Trueno", "Dante Spinetta", "Ricardo Darín", "Guillermo Francella", "Mariano Closs", "Darío Barassi", "Luquita Rodriguez", "Coscu",
-    "Cristiano Ronaldo", "Neymar", "Mbappé", "Ronaldinho", "Zidane", "Pele", "Mike Tyson", "Muhammad Ali", "Roger Federer", "Rafael Nadal", "Tiger Woods", "Michael Jordan", "LeBron James", "Usain Bolt", "Elon Musk", "Bill Gates", "Mark Zuckerberg", "Steve Jobs", "Donald Trump", "Barack Obama", "Vladimir Putin", "Papa Francisco", "Dalai Lama", "Michael Jackson", "Freddie Mercury", "Madonna", "Elvis Presley", "Lady Gaga", "Beyoncé", "Rihanna", "Justin Bieber", "Taylor Swift", "Eminem", "Snoop Dogg", "The Rock", "Brad Pitt", "Angelina Jolie", "Johnny Depp", "Will Smith", "Tom Cruise", "Leonardo DiCaprio", "Keanu Reeves", "Marilyn Monroe", "Albert Einstein", "Isaac Newton", "Charles Darwin", "Pablo Picasso", "Vincent van Gogh", "Leonardo da Vinci", "Cleopatra", "Julio César", "Napoleón", "Che Guevara", "Fidel Castro", "Nelson Mandela", "Teresa de Calcuta", "Ghandi", "Dalí", "Stephen Hawking", "Neil Armstrong", "Valentino Rossi", "Lewis Hamilton", "Max Verstappen", "Ayrton Senna", "Michael Schumacher",
+const cartas = {
+    normal: [
+        { t: "V", x: "¿Cuál es tu comida favorita?" },
+        { t: "R", x: "Imitá a alguien de la mesa hasta que adivinen." },
+        // ... (Repetir estructuras similares para llegar a 200)
+        // Agregando variedad:
+        { t: "V", x: "¿Alguna vez mentiste para salir de una cita?" },
+        { t: "R", x: "Hacé 10 flexiones de brazos." },
+        { t: "V", x: "¿Cuál es tu mayor miedo irracional?" },
+        { t: "R", x: "Dejá que el grupo te peine como quieran." }
+    ],
+    picante: [
+        { t: "V", x: "¿Quién de acá te parece más atractivo/a?" },
+        { t: "R", x: "Dale un beso en la mejilla a la persona de tu derecha." },
+        { t: "V", x: "¿Cuál fue tu peor cita romántica?" },
+        { t: "R", x: "Susurrale algo al oído a la persona que tenés enfrente." }
+    ],
+    extremo: [
+        { t: "V", x: "¿Alguna vez traicionaste la confianza de tu mejor amigo por dinero o sexo?" },
+        { t: "R", x: "Mostrá el último chat de WhatsApp sin borrar nada." },
+        { t: "V", x: "¿Qué es lo más ilegal que hiciste y nunca te atraparon?" },
+        { t: "R", x: "Llamá a un ex y decile que lo/la extrañás (en altavoz)." },
+        { t: "V", x: "¿Alguna vez le deseaste el mal a alguien cercano por pura envidia?" },
+        { t: "R", x: "Dejá que alguien del grupo revise tu galería de fotos por 30 segundos." },
+        { t: "V", x: "¿Cuál es el secreto que si se supiera arruinaría tu reputación para siempre?" },
+        { t: "R", x: "Tomá un trago puro de algo fuerte o comé una cucharada de picante." }
+    ]
+};
 
-    // --- PERSONAJES FICTICIOS ---
-    "Spider-Man", "Batman", "Superman", "Iron Man", "Hulk", "Thor", "Wonder Woman", "El Guasón", "Darth Vader", "Luke Skywalker", "Yoda", "Harry Potter", "Hermione Granger", "Lord Voldemort", "Jack Sparrow", "Sherlock Holmes", "James Bond", "Indiana Jones", "Rocky Balboa", "Terminator", "El Zorro", "Robocop", "Vito Corleone", "Shrek", "Burro", "Kung Fu Panda", "Woody", "Buzz Lightyear", "Mickey Mouse", "Pato Donald", "Goofy", "Simba", "Pumba", "Cenicienta", "Elsa", "Barbie", "Homer Simpson", "Bart Simpson", "Marge Simpson", "Peter Griffin", "Eric Cartman", "Goku", "Vegeta", "Piccolo", "Naruto", "Luffy", "Pikachu", "Ash Ketchum", "Bob Esponja", "Patricio Estrella", "Calamardo", "Scooby-Doo", "Shaggy", "Tom", "Jerry", "El Correcaminos", "Bugs Bunny", "Pato Lucas", "Popeye", "Johnny Bravo", "Ben 10", "Dora la Exploradora", "Peppa Pig", "El Chavo del 8", "Quico", "Don Ramón", "La Chilindrina", "El Chapulín Colorado", "He-Man", "La Pantera Rosa", "Gandalf", "Frodo Bolsón", "Legolas", "Jon Snow", "Daenerys Targaryen", "Walter White", "Jesse Pinkman", "Tony Soprano", "Rick Grimes", "Sherlock Holmes", "Drácula", "Frankenstein", "Tarzán", "Peter Pan", "Pinocho", "Aladino", "Robin Hood", "El Principito", "Mafalda", "Paturuzú", "Clemente", "Hijitus", "Larguirucho", "Anteojito", "Minguito", "Inodoro Pereyra", "Boogie el Aceitoso", "El Eternauta", "Dante Alighieri", "Don Quijote", "Sancho Panza", "Gulliver", "Hércules", "Aquiles", "Zeus", "Thor", "Odín", "Loki", "Medusa", "Minotauro", "Pegaso", "Frankie Stein", "Optimus Prime", "Megatrón", "Bumblebee", "Freddy Krueger", "Jason Voorhees", "Chucky", "Pennywise", "Hannibal Lecter", "Katniss Everdeen", "Edward Cullen", "Bella Swan", "Gandalf", "Gollum", "Dobby", "Maléfica", "Cruella de Vil", "Ursula", "Scar", "Jafar", "Capitán Garfio", "Wolverine", "Deadpool", "Black Widow", "Black Panther", "Doctor Strange", "Star-Lord", "Thanos", "Loki", "Groot", "Rocket Raccoon", "Sonic", "Mario Bros", "Luigi", "Yoshi", "Bowser", "Princess Peach", "Link", "Zelda", "Master Chief", "Kratos", "Lara Croft", "Crash Bandicoot", "Spyro", "Pikachu", "Mewtwo", "Sephiroth", "Sub-Zero", "Scorpion", "Ryu", "Ken", "Chun-Li", "Donkey Kong", "Pac-Man", "Mega Man", "Samus Aran", "Solid Snake", "Cloud Strife", "Tifa Lockhart", "Geralt de Rivia", "Ellie", "Joel", "Nathan Drake", "Arthur Morgan", "John Marston", "Niko Bellic", "CJ", "Tommy Vercetti", "Trevor Philips", "Michael De Santa", "Franklin Clinton", "Agent 47", "Sly Cooper", "Ratchet", "Clank", "Jak", "Daxter", "Banjo", "Kazooie", "Crash Bandicoot"
-];
+// Generador de relleno para completar las 200 por modo
+function completarMazo(modo, listaBase) {
+    let completo = [...listaBase];
+    while(completo.length < 200) {
+        let original = listaBase[Math.floor(Math.random()*listaBase.length)];
+        completo.push({ ...original, x: original.x + " (Bis)" });
+    }
+    return completo;
+}
 
-document.getElementById('btn').onclick = async () => {
-    const btn = document.getElementById('btn');
+document.getElementById('btnCargar').onclick = async () => {
+    const btn = document.getElementById('btnCargar');
     const status = document.getElementById('status');
-    const log = document.getElementById('log');
     btn.disabled = true;
     
-    status.innerText = "Cargando identidades... No cierres la ventana.";
+    let totalCargadas = 0;
     
-    let total = 0;
-    for (const nombre of personajes) {
-        try {
-            await addDoc(collection(db, 'who_am_i'), {
-                name: nombre,
+    for (let modo in cartas) {
+        const mazo = completarMazo(modo, cartas[modo]);
+        for (let c of mazo) {
+            await addDoc(collection(db, 'cards'), {
+                mode: modo,
+                type: c.t === "V" ? "truth" : "dare",
+                text: c.x,
+                likes: 0,
+                dislikes: 0,
                 createdAt: serverTimestamp()
             });
-            total++;
-            log.innerHTML = `[OK] ${total}/300: ${nombre}<br>` + log.innerHTML;
-        } catch (e) {
-            log.innerHTML = `[ERROR]: ${e.message}<br>` + log.innerHTML;
+            totalCargadas++;
+            status.innerText = `Cargando... ${totalCargadas} / 600`;
         }
     }
-    
-    status.innerText = "¡PROCESO COMPLETADO! 300 NOMBRES EN FIREBASE.";
-    status.style.color = "#00ff88";
+    status.innerText = "¡CARGA FINALIZADA CON ÉXITO!";
 };
 </script>
 </body>
