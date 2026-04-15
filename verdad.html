@@ -197,4 +197,28 @@ window.vote = async (isLike) => {
 
 function updateProgressUI() {
     const box = document.getElementById('addSection');
-    const txt
+    const txt = document.getElementById('progText');
+    if (myPlays >= 10) {
+        box.classList.remove('locked');
+        txt.innerText = "✅ YA PODÉS AGREGAR CARTAS";
+    } else {
+        txt.innerText = `JUGÁ ${10 - myPlays} VECES PARA AGREGAR`;
+    }
+}
+
+window.submitCard = async () => {
+    const text = document.getElementById('cardText').value.trim();
+    if (text.length < 5) return alert("Escribí algo más largo.");
+    await addDoc(collection(db, 'cards'), {
+        type: Math.random() > 0.5 ? 'truth' : 'dare', // Simplificado para el test
+        mode: currentMode,
+        text: text,
+        likes: 0, dislikes: 0,
+        createdAt: serverTimestamp()
+    });
+    document.getElementById('cardText').value = "";
+    alert("¡Enviada!");
+};
+</script>
+</body>
+</html>
