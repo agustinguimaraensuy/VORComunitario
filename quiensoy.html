@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>¿QUIÉN SOY?</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg:#050505; --accent:#00ff88; --text:#ffffff; --muted:#444;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{
+    background:var(--bg); color:var(--text); 
+    font-family:'DM Sans',sans-serif; overflow:hidden;
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+    height:100vh; text-align:center;
+  }
+
+  /* Pantalla de Inicio */
+  .screen{ display:none; width:100%; padding:20px; }
+  .active{ display:flex; flex-direction:column; }
+
+  .logo{ font-family:'Bebas Neue'; font-size:70px; color:var(--accent); line-height:0.9; margin-bottom:20px;}
+  
+  .btn-start{
+    background:var(--accent); color:#000; border:none; padding:20px 40px;
+    font-family:'Bebas Neue'; font-size:30px; border-radius:15px; cursor:pointer;
+  }
+
+  /* Cuenta regresiva */
+  #countdown{ font-family:'Bebas Neue'; font-size:150px; color:var(--accent); }
+
+  /* El Personaje (Letras Gigantes) */
+  #nameDisplay{ 
+    font-family:'Bebas Neue'; 
+    font-size: clamp(60px, 15vw, 120px); 
+    text-transform: uppercase;
+    line-height: 1;
+    padding: 0 10px;
+  }
+
+  .instruction{ font-size:14px; color:var(--muted); letter-spacing:3px; margin-top:20px; text-transform:uppercase;}
+  
+  .btn-back{ position:absolute; top:20px; left:20px; background:none; border:none; color:var(--muted); font-size:12px; cursor:pointer;}
+</style>
+</head>
+<body>
+
+  <button class="btn-back" onclick="location.href='index.html'">← SALIR</button>
+
+  <div class="screen active" id="menu">
+    <div class="logo">¿QUIÉN<br>SOY?</div>
+    <p style="color:var(--muted); margin-bottom:30px;">Ponete el celular en la frente.<br>Tus amigos leen, vos adivinás.</p>
+    <button class="btn-start" onclick="startTimer()">¡JUGAR!</button>
+  </div>
+
+  <div class="screen" id="timerScreen">
+    <div class="instruction">PREPARATE EN...</div>
+    <div id="countdown">5</div>
+  </div>
+
+  <div class="screen" id="gameScreen">
+    <div class="instruction">SOS:</div>
+    <div id="nameDisplay">---</div>
+    <button class="btn-start" style="margin-top:50px; font-size:20px; padding:10px;" onclick="location.reload()">SIGUIENTE</button>
+  </div>
+
+<script>
+  const personajes = [
+    "Lionel Messi", "Spider-Man", "Batman", "Shakira", "Mickey Mouse", 
+    "Harry Potter", "Donald Trump", "El Chavo del 8", "Homer Simpson", 
+    "Maradona", "Elon Musk", "Darth Vader", "Jack Sparrow", "Ronaldo",
+    "Iron Man", "Maluma", "Bugs Bunny", "Sherlock Holmes", "Snoop Dogg",
+    "Luis Suárez", "El Bananero", "Deadpool", "Kim Kardashian", "Goku"
+  ];
+
+  function startTimer() {
+    document.getElementById('menu').classList.remove('active');
+    document.getElementById('timerScreen').classList.add('active');
+    
+    let count = 5;
+    const interval = setInterval(() => {
+      count--;
+      document.getElementById('countdown').innerText = count;
+      
+      if(count === 0) {
+        clearInterval(interval);
+        showCharacter();
+      }
+    }, 1000);
+  }
+
+  function showCharacter() {
+    const randomName = personajes[Math.floor(Math.random() * personajes.length)];
+    document.getElementById('nameDisplay').innerText = randomName;
+    
+    document.getElementById('timerScreen').classList.remove('active');
+    document.getElementById('gameScreen').classList.add('active');
+  }
+</script>
+</body>
+</html>
