@@ -1,0 +1,115 @@
+Perfecto, vamos a armar ese Index con un diseño potente, tipo "menú de consola", para que se vea profesional desde el celular.
+
+He usado el mismo estilo visual oscuro y minimalista que venimos manejando, con tarjetas grandes que son fáciles de tocar en una previa.
+
+Estructura de archivos:
+index.html (Este archivo)
+
+verdad.html (Tu juego de Verdad o Reto)
+
+reto.html (Tu juego de Shots)
+
+prueba.html (Tu zona de pruebas)
+
+Aquí tienes el código del Index:
+
+HTML
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>PARTY HUB - JUEGOS</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg:#050505; --surface:#111111; --border:#222;
+    --accent:#facc15; --text:#ffffff; --muted:#666;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+  body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif; min-height:100vh; display:flex; flex-direction:column; align-items:center;}
+  
+  .container{ width:100%; max-width:500px; padding:40px 20px; text-align:center;}
+  
+  header{ margin-bottom:50px;}
+  .logo{ font-family:'Bebas Neue'; font-size:60px; line-height:0.9; color:var(--text); letter-spacing:2px;}
+  .logo span{ color:var(--accent); }
+  .tagline{ font-size:10px; letter-spacing:4px; color:var(--muted); margin-top:10px; text-transform:uppercase;}
+
+  .menu-grid{ display:grid; gap:20px; width:100%;}
+  
+  .game-card{
+    background:var(--surface);
+    border:1px solid var(--border);
+    padding:30px 20px;
+    border-radius:20px;
+    text-decoration:none;
+    color:white;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    position:relative;
+    overflow:hidden;
+  }
+  
+  .game-card:active{ transform:scale(0.96); background: #1a1a1a; border-color:var(--accent);}
+  
+  .icon{ font-size:40px; margin-bottom:15px;}
+  .title{ font-family:'Bebas Neue'; font-size:32px; letter-spacing:2px; margin-bottom:5px;}
+  .desc{ font-size:13px; color:var(--muted); line-height:1.2;}
+
+  /* Estilo especial para el botón de prueba */
+  .btn-debug{
+    margin-top:40px;
+    padding:12px 24px;
+    background:transparent;
+    border:1px dashed #444;
+    border-radius:10px;
+    color:#444;
+    text-decoration:none;
+    font-size:12px;
+    font-family:'Bebas Neue';
+    letter-spacing:2px;
+    transition: 0.3s;
+  }
+  .btn-debug:hover{ border-color:var(--accent); color:var(--accent); }
+
+  .footer{ margin-top:auto; padding:40px; font-size:10px; color:#333; letter-spacing:1px;}
+</style>
+</head>
+<body>
+
+<div class="container">
+  <header>
+    <div class="logo">PARTY<span>HUB</span></div>
+    <p class="tagline">Salto - Uruguay 2026</p>
+  </header>
+
+  <div class="menu-grid">
+    
+    <a href="verdad.html" class="game-card">
+      <div class="icon">🎲</div>
+      <div class="title">VERDAD O RETO</div>
+      <div class="desc">El clásico para romper el hielo.</div>
+    </a>
+
+    <a href="reto.html" class="game-card">
+      <div class="icon">🥃</div>
+      <div class="title">SHOT MASTER</div>
+      <div class="desc">Si perdés, tomás. Modo fiesta activado.</div>
+    </a>
+
+    <a href="prueba.html" class="btn-debug">
+      ⚙️ ACCESO A PRUEBA.HTML
+    </a>
+
+  </div>
+</div>
+
+<footer class="footer">
+  DESARROLLADO PARA LA JODA v1.0
+</footer>
+
+</body>
+</html>
