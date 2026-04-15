@@ -99,7 +99,7 @@
   </div>
 
 <script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+ import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
   import { getFirestore, collection, addDoc, onSnapshot, query, orderBy, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
   const firebaseConfig = {
@@ -115,21 +115,25 @@
   const db = getFirestore(app);
   let allShots = [];
   let currentMode = '';
-  let plays = 0; // Se reinicia al recargar según lo que pediste antes
+  let plays = 0; 
   let correctCaptcha = 0;
 
-  // Escuchar base de datos
+  // 1. CARGA DE DATOS
   onSnapshot(query(collection(db, 'shots_cards'), orderBy('createdAt', 'desc')), (snap) => {
     allShots = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
   });
 
+  // 2. INICIO DE JUEGO
   window.startGame = (mode) => {
     currentMode = mode;
+    plays = 0; // Reiniciamos contador al elegir modo
+    updateProgress(); // Forzamos el estado bloqueado al empezar
+    genCaptcha(); 
+    
     document.getElementById('menu').classList.remove('active');
     document.getElementById('game').classList.add('active');
     document.getElementById('modeName').innerText = mode.toUpperCase();
     document.getElementById('modeName').style.color = `var(--${mode})`;
-    genCaptcha();
     drawShot();
   };
 
@@ -138,15 +142,19 @@
     document.getElementById('menu').classList.add('active');
   };
 
+  // 3. LOGICA DE SORTEO Y PROGRESO
   window.drawShot = () => {
     const pool = allShots.filter(s => s.mode === currentMode);
-    if(pool.length === 0) return;
+    if(pool.length === 0) {
+        document.getElementById('cardText').innerText = "Cargando cartas o mazo vacío...";
+        return;
+    }
     
     const shot = pool[Math.floor(Math.random() * pool.length)];
     document.getElementById('cardArea').className = `main-card card-${currentMode}`;
     document.getElementById('cardText').innerText = shot.text;
 
-    // Lógica de progreso
+    // Aumentar jugadas y actualizar barra
     plays++;
     updateProgress();
   };
@@ -154,41 +162,54 @@
   function updateProgress() {
     const box = document.getElementById('addBox');
     const txt = document.getElementById('progText');
+    
     if(plays < 10) {
+      box.classList.add('locked'); // Aseguramos que esté bloqueado
       txt.innerText = `Juega 10 veces para agregar retos (${plays}/10)`;
+      txt.style.color = "var(--muted)";
     } else {
-      box.classList.remove('locked');
+      box.classList.remove('locked'); // Desbloqueo
       txt.innerText = "✅ ¡Ya puedes colaborar!";
       txt.style.color = "var(--shot)";
     }
   }
 
+  // 4. CAPTCHA
   function genCaptcha() {
-    const a = Math.floor(Math.random() * 10);
-    const b = Math.floor(Math.random() * 10);
+    const a = Math.floor(Math.random() * 9) + 1;
+    const b = Math.floor(Math.random() * 9) + 1;
     correctCaptcha = a + b;
     document.getElementById('captchaQ').innerText = `¿Cuánto es ${a} + ${b}?`;
   }
 
+  // 5. SUBIR CARTA
   window.addShot = async () => {
     const text = document.getElementById('newShotText').value.trim();
     const ans = parseInt(document.getElementById('captchaA').value);
 
-    if(text.length < 5) return alert("Escribe un reto más largo.");
-    if(ans !== correctCaptcha) return alert("Captcha incorrecto.");
+    if(plays < 10) return alert("Debes jugar 10 rondas primero.");
+    if(text.length < 5) return alert("El texto es muy corto.");
+    if(ans !== correctCaptcha) {
+        alert("Suma incorrecta. Intenta de nuevo.");
+        genCaptcha();
+        return;
+    }
     
-    await addDoc(collection(db, 'shots_cards'), {
-      mode: currentMode,
-      text: text,
-      createdAt: serverTimestamp()
-    });
-    
-    document.getElementById('newShotText').value = "";
-    document.getElementById('captchaA').value = "";
-    alert("¡Reto enviado con éxito!");
-    genCaptcha();
+    try {
+        await addDoc(collection(db, 'shots_cards'), {
+          mode: currentMode,
+          text: text,
+          createdAt: serverTimestamp()
+        });
+        
+        document.getElementById('newShotText').value = "";
+        document.getElementById('captchaA').value = "";
+        alert("¡Reto enviado al mazo!");
+        genCaptcha();
+    } catch (e) {
+        alert("Error al subir. Revisa tu conexión.");
+    }
   };
-
 </script>
 </body>
 </html>
