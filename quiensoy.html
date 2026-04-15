@@ -4,7 +4,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-<title>¿QUIÉN SOY? - PROBABILIDAD FIJADA</title>
+<title>¿QUIÉN SOY? - VOTO RÁPIDO</title>
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@700&display=swap" rel="stylesheet">
 <style>
   :root {
@@ -26,14 +26,18 @@
 
   .timer-box { font-family: 'Bebas Neue'; font-size: 30px; background: #111; padding: 5px 20px; border-radius: 10px; border: 1px solid var(--border); }
 
-  /* VOTACIÓN */
-  .vote-box { display: flex; gap: 40px; margin-top: 20px; }
-  .btn-vote { background: #1a1a1a; border: 2px solid var(--border); border-radius: 50%; width: 70px; height: 70px; font-size: 30px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: 0.2s; }
+  /* VOTACIÓN COMO ACCIÓN DE SALIDA */
+  .vote-box { display: flex; gap: 60px; margin-top: 30px; }
+  .btn-vote { 
+    background: #1a1a1a; border: 2px solid var(--border); border-radius: 50%; 
+    width: 90px; height: 90px; font-size: 40px; cursor: pointer; 
+    display: flex; align-items: center; justify-content: center; transition: 0.2s; 
+  }
   .btn-vote.up { border-color: var(--accent); color: var(--accent); }
   .btn-vote.down { border-color: var(--red); color: var(--red); }
-  .btn-vote.voted { opacity: 0.2; pointer-events: none; filter: grayscale(1); }
-
-  .btn-exit { margin-top: 30px; padding: 12px 30px; background: none; color: #666; border: 1px solid #333; border-radius: 10px; font-family: 'Bebas Neue'; font-size: 18px; cursor: pointer; }
+  
+  /* Animación al votar */
+  .btn-vote:active { transform: scale(0.9); background: white; }
 
   /* MENÚ */
   .logo-text{ font-family:'Bebas Neue'; font-size:60px; color:var(--accent); line-height:0.9; margin-bottom:20px;}
@@ -73,12 +77,11 @@
       <div class="timer-box" id="gameTimer">03:00</div>
       <div id="nameDisplay">---</div>
       
-      <div class="vote-box" id="voteControls">
-        <button class="btn-vote up" onclick="vote(true)">👍</button>
-        <button class="btn-vote down" onclick="vote(false)">👎</button>
+      <p style="color:var(--muted); font-size:12px; margin-top:20px; letter-spacing:2px;">VOTÁ PARA TERMINAR</p>
+      <div class="vote-box">
+        <button class="btn-vote down" onclick="voteAndExit(false)">👎</button>
+        <button class="btn-vote up" onclick="voteAndExit(true)">👍</button>
       </div>
-
-      <button class="btn-exit" onclick="location.reload()">SIGUIENTE / SALIR</button>
     </div>
   </div>
 
@@ -128,20 +131,15 @@
   function runGame() {
     if(allCharacters.length === 0) return;
 
-    // ALGORITMO DE PESOS (25% arriba / 25% abajo)
     let pool = [];
     allCharacters.forEach(char => {
         const likes = char.likes || 0;
         const dislikes = char.dislikes || 0;
         const total = likes + dislikes;
         const ratio = total === 0 ? 0.5 : likes / total;
-
-        // Peso base = 100 tickets
         let tickets = 100;
-
-        if (ratio >= 0.6) tickets = 125; // +25% de chance
-        else if (ratio <= 0.4 && total > 2) tickets = 75; // -25% de chance
-
+        if (ratio >= 0.6) tickets = 125;
+        else if (ratio <= 0.4 && total > 2) tickets = 75;
         for(let i=0; i < tickets; i++) pool.push(char);
     });
 
@@ -157,19 +155,30 @@
       secondsLeft--;
       let m = Math.floor(secondsLeft / 60), s = secondsLeft % 60;
       document.getElementById('gameTimer').innerText = `${m}:${s.toString().padStart(2,'0')}`;
-      if(secondsLeft <= 0) clearInterval(gameInt);
+      if(secondsLeft <= 0) { clearInterval(gameInt); }
     }, 1000);
 
     plays++;
     localStorage.setItem('plays_quien', plays);
   }
 
-  window.vote = async (isLike) => {
+  // NUEVA FUNCIÓN: VOTA, GUARDA Y REINICIA
+  window.voteAndExit = async (isLike) => {
     if(!currentId) return;
-    document.getElementById('voteControls').classList.add('voted');
-    await updateDoc(doc(db, 'who_am_i', currentId), {
-        [isLike ? 'likes' : 'dislikes']: increment(1)
-    });
+    
+    // Feedback visual inmediato
+    const charRef = doc(db, 'who_am_i', currentId);
+    
+    try {
+        await updateDoc(charRef, {
+            [isLike ? 'likes' : 'dislikes']: increment(1)
+        });
+        // Reinicia la app para volver al menú
+        location.reload();
+    } catch (e) {
+        console.error("Error al votar", e);
+        location.reload();
+    }
   };
 
   function updateProgress() {
