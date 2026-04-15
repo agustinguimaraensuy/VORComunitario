@@ -1,0 +1,146 @@
+HTML
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>SHOT MASTER ONLINE</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg:#050505; --surface:#121212; --border:#252525;
+    --shot:#facc15; --text:#ffffff; --muted:#888;
+    --normal:#10b981; --picante:#f97316; --extremo:#ef4444;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+  body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif; text-align:center; min-height:100vh;}
+  .screen{display:none; padding-bottom: 40px;} .active{display:flex; flex-direction:column; align-items:center;}
+  
+  /* Selector de Modos */
+  .header{padding:40px 20px;}
+  .logo{font-family:'Bebas Neue'; font-size:70px; color:var(--shot); line-height:0.9;}
+  .mode-btn{
+    width:90%; max-width:400px; padding:25px; margin:10px; border-radius:15px;
+    font-family:'Bebas Neue'; font-size:28px; cursor:pointer; border:2px solid transparent;
+    background:var(--surface); color:var(--text); transition:0.2s;
+  }
+  .btn-n{border-color:var(--normal); color:var(--normal);}
+  .btn-p{border-color:var(--picante); color:var(--picante);}
+  .btn-e{border-color:var(--extremo); color:var(--extremo);}
+
+  /* Pantalla de Juego */
+  .game-header{padding:20px; width:100%; display:flex; justify-content:space-between; align-items:center;}
+  .back{background:none; border:none; color:var(--muted); font-size:14px; cursor:pointer;}
+  .main-card{
+    background:var(--surface); width:90%; max-width:450px; padding:50px 25px;
+    border-radius:24px; border: 1px solid var(--border); min-height:300px;
+    display:flex; flex-direction:column; justify-content:center; margin:20px 0;
+    position:relative; overflow:hidden;
+  }
+  .type-label{ font-size:12px; text-transform:uppercase; letter-spacing:3px; color:var(--muted); margin-bottom:15px;}
+  .content{ font-size:22px; font-weight:700; line-height:1.4;}
+  .btn-next{
+    background:var(--shot); color:#000; border:none; padding:15px 40px;
+    font-family:'Bebas Neue'; font-size:24px; border-radius:10px; cursor:pointer; width: 90%; max-width: 450px;
+  }
+
+  /* Formulario de agregar */
+  .add-box{ background: var(--surface); width: 90%; max-width: 450px; padding: 20px; border-radius: 20px; border: 1px solid var(--border); margin-top: 30px;}
+  textarea{ width: 100%; background: #000; border: 1px solid var(--border); color: #fff; padding: 10px; border-radius: 10px; resize: none; margin: 10px 0;}
+  .submit-mini{ background: var(--muted); color: #000; border: none; padding: 10px; border-radius: 5px; font-family: 'Bebas Neue'; width: 100%; cursor: pointer;}
+
+  .card-normal{border-top:5px solid var(--normal);}
+  .card-picante{border-top:5px solid var(--picante);}
+  .card-extremo{border-top:5px solid var(--extremo);}
+</style>
+</head>
+<body>
+
+  <div class="screen active" id="menu">
+    <div class="header">
+      <div class="logo">SHOT<br>MASTER</div>
+    </div>
+    <button class="mode-btn btn-n" onclick="startGame('normal')">MODO TRANQUI</button>
+    <button class="mode-btn btn-p" onclick="startGame('picante')">MODO PREVIA</button>
+    <button class="mode-btn btn-e" onclick="startGame('extremo')">MODO HOSPITAL</button>
+  </div>
+
+  <div class="screen" id="game">
+    <div class="game-header">
+      <button class="back" onclick="location.reload()">← VOLVER</button>
+      <div id="modeName" style="font-family:'Bebas Neue'; letter-spacing:2px;"></div>
+    </div>
+
+    <div class="main-card" id="cardArea">
+      <div class="content" id="cardText">Cargando retos...</div>
+    </div>
+
+    <button class="btn-next" onclick="drawShot()">SIGUIENTE SHOT →</button>
+
+    <div class="add-box">
+      <p style="font-size: 10px; color: var(--muted);">AGREGAR RETO A ESTE MODO</p>
+      <textarea id="newShotText" placeholder="Ej: El que tenga Android toma 2..."></textarea>
+      <button class="submit-mini" onclick="addShot()">SUBIR RETO</button>
+    </div>
+  </div>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+  import { getFirestore, collection, addDoc, onSnapshot, query, orderBy, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyDTtD4dXW1r1RWLDSOWUGIiqskAavP1Zz0",
+    authDomain: "verdad-952a0.firebaseapp.com",
+    projectId: "verdad-952a0",
+    storageBucket: "verdad-952a0.firebasestorage.app",
+    messagingSenderId: "648263922519",
+    appId: "1:648263922519:web:3e3f04d3bf0b2ad13f4412"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+  let allShots = [];
+  let currentMode = '';
+
+  // Escuchar base de datos
+  const q = query(collection(db, 'shots_cards'), orderBy('createdAt', 'desc'));
+  onSnapshot(q, (snap) => {
+    allShots = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+  });
+
+  window.startGame = (mode) => {
+    currentMode = mode;
+    document.getElementById('menu').classList.remove('active');
+    document.getElementById('game').classList.add('active');
+    document.getElementById('modeName').innerText = mode.toUpperCase();
+    document.getElementById('modeName').style.color = `var(--${mode})`;
+    setTimeout(drawShot, 500); // Dar tiempo a cargar
+  };
+
+  window.drawShot = () => {
+    const pool = allShots.filter(s => s.mode === currentMode);
+    if(pool.length === 0) {
+      document.getElementById('cardText').innerText = "No hay retos en este modo. ¡Sé el primero en agregar uno!";
+      return;
+    }
+    const shot = pool[Math.floor(Math.random() * pool.length)];
+    document.getElementById('cardArea').className = `main-card card-${currentMode}`;
+    document.getElementById('cardText').innerText = shot.text;
+  };
+
+  window.addShot = async () => {
+    const text = document.getElementById('newShotText').value.trim();
+    if(text.length < 3) return;
+    
+    await addDoc(collection(db, 'shots_cards'), {
+      mode: currentMode,
+      text: text,
+      createdAt: serverTimestamp()
+    });
+    document.getElementById('newShotText').value = "";
+    alert("Reto agregado al mazo");
+  };
+
+</script>
+</body>
+</html>
