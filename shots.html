@@ -28,26 +28,32 @@
   .btn-p{border-color:var(--picante); color:var(--picante);}
   .btn-e{border-color:var(--extremo); color:var(--extremo);}
 
+  /* Botón Volver al Index */
+  .btn-exit{ margin-top: 20px; background: none; border: 1px solid #333; color: var(--muted); padding: 10px 20px; border-radius: 10px; font-family: 'Bebas Neue'; cursor: pointer; text-decoration: none; font-size: 14px;}
+
   /* Pantalla de Juego */
   .game-header{padding:20px; width:100%; display:flex; justify-content:space-between; align-items:center;}
   .back{background:none; border:none; color:var(--muted); font-size:14px; cursor:pointer;}
   .main-card{
     background:var(--surface); width:90%; max-width:450px; padding:50px 25px;
-    border-radius:24px; border: 1px solid var(--border); min-height:300px;
-    display:flex; flex-direction:column; justify-content:center; margin:20px 0;
-    position:relative; overflow:hidden;
+    border-radius:24px; border: 1px solid var(--border); min-height:280px;
+    display:flex; flex-direction:column; justify-content:center; margin:10px 0;
+    position:relative;
   }
-  .type-label{ font-size:12px; text-transform:uppercase; letter-spacing:3px; color:var(--muted); margin-bottom:15px;}
   .content{ font-size:22px; font-weight:700; line-height:1.4;}
   .btn-next{
-    background:var(--shot); color:#000; border:none; padding:15px 40px;
-    font-family:'Bebas Neue'; font-size:24px; border-radius:10px; cursor:pointer; width: 90%; max-width: 450px;
+    background:var(--shot); color:#000; border:none; padding:18px 40px;
+    font-family:'Bebas Neue'; font-size:24px; border-radius:12px; cursor:pointer; width: 90%; max-width: 450px;
   }
 
-  /* Formulario de agregar */
-  .add-box{ background: var(--surface); width: 90%; max-width: 450px; padding: 20px; border-radius: 20px; border: 1px solid var(--border); margin-top: 30px;}
+  /* Bloqueo y Formulario */
+  .add-box{ background: var(--surface); width: 90%; max-width: 450px; padding: 20px; border-radius: 20px; border: 1px solid var(--border); margin-top: 30px; transition: 0.3s;}
+  .add-box.locked{ opacity: 0.2; pointer-events: none; filter: grayscale(1); }
+  .progress-info{ font-size: 10px; color: var(--muted); margin-bottom: 10px; }
   textarea{ width: 100%; background: #000; border: 1px solid var(--border); color: #fff; padding: 10px; border-radius: 10px; resize: none; margin: 10px 0;}
-  .submit-mini{ background: var(--muted); color: #000; border: none; padding: 10px; border-radius: 5px; font-family: 'Bebas Neue'; width: 100%; cursor: pointer;}
+  .captcha-wrap{ display: flex; align-items: center; justify-content: center; gap: 10px; margin-bottom: 10px; font-size: 14px;}
+  .captcha-input{ width: 50px; padding: 5px; border-radius: 5px; border: none; text-align: center;}
+  .submit-btn{ background: var(--shot); color: #000; border: none; padding: 12px; border-radius: 8px; font-family: 'Bebas Neue'; width: 100%; cursor: pointer; font-size: 18px;}
 
   .card-normal{border-top:5px solid var(--normal);}
   .card-picante{border-top:5px solid var(--picante);}
@@ -63,11 +69,13 @@
     <button class="mode-btn btn-n" onclick="startGame('normal')">MODO TRANQUI</button>
     <button class="mode-btn btn-p" onclick="startGame('picante')">MODO PREVIA</button>
     <button class="mode-btn btn-e" onclick="startGame('extremo')">MODO HOSPITAL</button>
+    
+    <a href="index.html" class="btn-exit">← VOLVER AL MENÚ DE JUEGOS</a>
   </div>
 
   <div class="screen" id="game">
     <div class="game-header">
-      <button class="back" onclick="location.reload()">← VOLVER</button>
+      <button class="back" onclick="showMenu()">← CAMBIAR MODO</button>
       <div id="modeName" style="font-family:'Bebas Neue'; letter-spacing:2px;"></div>
     </div>
 
@@ -77,10 +85,16 @@
 
     <button class="btn-next" onclick="drawShot()">SIGUIENTE SHOT →</button>
 
-    <div class="add-box">
-      <p style="font-size: 10px; color: var(--muted);">AGREGAR RETO A ESTE MODO</p>
-      <textarea id="newShotText" placeholder="Ej: El que tenga Android toma 2..."></textarea>
-      <button class="submit-mini" onclick="addShot()">SUBIR RETO</button>
+    <div class="add-box locked" id="addBox">
+      <p class="progress-info" id="progText">Juega 10 veces para agregar retos (0/10)</p>
+      <textarea id="newShotText" placeholder="Escribe un reto para este modo..."></textarea>
+      
+      <div class="captcha-wrap">
+        <span id="captchaQ"></span>
+        <input type="number" id="captchaA" class="captcha-input">
+      </div>
+      
+      <button class="submit-btn" onclick="addShot()">SUBIR AL MAZO</button>
     </div>
   </div>
 
@@ -101,10 +115,11 @@
   const db = getFirestore(app);
   let allShots = [];
   let currentMode = '';
+  let plays = 0; // Se reinicia al recargar según lo que pediste antes
+  let correctCaptcha = 0;
 
   // Escuchar base de datos
-  const q = query(collection(db, 'shots_cards'), orderBy('createdAt', 'desc'));
-  onSnapshot(q, (snap) => {
+  onSnapshot(query(collection(db, 'shots_cards'), orderBy('createdAt', 'desc')), (snap) => {
     allShots = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
   });
 
@@ -114,31 +129,64 @@
     document.getElementById('game').classList.add('active');
     document.getElementById('modeName').innerText = mode.toUpperCase();
     document.getElementById('modeName').style.color = `var(--${mode})`;
-    setTimeout(drawShot, 500); // Dar tiempo a cargar
+    genCaptcha();
+    drawShot();
+  };
+
+  window.showMenu = () => {
+    document.getElementById('game').classList.remove('active');
+    document.getElementById('menu').classList.add('active');
   };
 
   window.drawShot = () => {
     const pool = allShots.filter(s => s.mode === currentMode);
-    if(pool.length === 0) {
-      document.getElementById('cardText').innerText = "No hay retos en este modo. ¡Sé el primero en agregar uno!";
-      return;
-    }
+    if(pool.length === 0) return;
+    
     const shot = pool[Math.floor(Math.random() * pool.length)];
     document.getElementById('cardArea').className = `main-card card-${currentMode}`;
     document.getElementById('cardText').innerText = shot.text;
+
+    // Lógica de progreso
+    plays++;
+    updateProgress();
   };
+
+  function updateProgress() {
+    const box = document.getElementById('addBox');
+    const txt = document.getElementById('progText');
+    if(plays < 10) {
+      txt.innerText = `Juega 10 veces para agregar retos (${plays}/10)`;
+    } else {
+      box.classList.remove('locked');
+      txt.innerText = "✅ ¡Ya puedes colaborar!";
+      txt.style.color = "var(--shot)";
+    }
+  }
+
+  function genCaptcha() {
+    const a = Math.floor(Math.random() * 10);
+    const b = Math.floor(Math.random() * 10);
+    correctCaptcha = a + b;
+    document.getElementById('captchaQ').innerText = `¿Cuánto es ${a} + ${b}?`;
+  }
 
   window.addShot = async () => {
     const text = document.getElementById('newShotText').value.trim();
-    if(text.length < 3) return;
+    const ans = parseInt(document.getElementById('captchaA').value);
+
+    if(text.length < 5) return alert("Escribe un reto más largo.");
+    if(ans !== correctCaptcha) return alert("Captcha incorrecto.");
     
     await addDoc(collection(db, 'shots_cards'), {
       mode: currentMode,
       text: text,
       createdAt: serverTimestamp()
     });
+    
     document.getElementById('newShotText').value = "";
-    alert("Reto agregado al mazo");
+    document.getElementById('captchaA').value = "";
+    alert("¡Reto enviado con éxito!");
+    genCaptcha();
   };
 
 </script>
