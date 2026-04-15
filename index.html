@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>VERDAD O RETO</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg:#080810; --surface:#10101c; --border:#1f1f38;
+    --truth:#ff5733; --dare:#8b5cf6; --accent:#fbbf24; --green:#10b981;
+    --text:#f0eff6; --muted:#64638a;
+    --normal:#10b981; --picante:#f97316; --extremo:#ef4444;
+    --glow-t:rgba(255,87,51,0.35); --glow-d:rgba(139,92,246,0.35);
+  }
+  *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+  body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min-height:100vh;overflow-x:hidden;}
+  body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellipse 70% 50% at 10% 10%,rgba(255,87,51,0.05) 0%,transparent 55%),radial-gradient(ellipse 60% 70% at 90% 90%,rgba(139,92,246,0.06) 0%,transparent 55%);pointer-events:none;z-index:0;}
+  .wrap{position:relative;z-index:1;max-width:720px;margin:0 auto;padding:0 12px 20px;}
+  .screen{display:none;} .screen.active{display:block;}
+  header{text-align:center;padding:28px 0 16px;}
+  .logo{font-family:'Bebas Neue',sans-serif;font-size:clamp(56px,12vw,100px);line-height:0.88;letter-spacing:3px;background:linear-gradient(135deg,var(--truth) 0%,var(--accent) 50%,var(--dare) 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;filter:drop-shadow(0 0 40px rgba(251,191,36,0.12));}
+  .tagline{margin-top:8px;color:var(--muted);font-size:11px;letter-spacing:4px;text-transform:uppercase;}
+  .mode-title{text-align:center;margin-bottom:28px;font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:3px;color:var(--muted);}
+  .mode-cards{display:flex;flex-direction:column;gap:14px;}
+  .mode-card{padding:28px 24px;border-radius:20px;border:2px solid transparent;cursor:pointer;transition:all 0.25s;background:var(--surface);display:flex;align-items:center;gap:20px;position:relative;overflow:hidden;}
+  .mode-normal{border-color:rgba(16,185,129,0.3);}
+  .mode-picante{border-color:rgba(249,115,22,0.3);}
+  .mode-extremo{border-color:rgba(239,68,68,0.3);}
+  .mode-icon{font-size:40px;}
+  .mode-name{font-family:'Bebas Neue',sans-serif;font-size:28px;letter-spacing:2px;line-height:1;margin-bottom:5px;}
+  .mode-normal .mode-name{color:var(--normal);} .mode-picante .mode-name{color:var(--picante);} .mode-extremo .mode-name{color:var(--extremo);}
+  .mode-desc{font-size:13px;color:var(--muted);line-height:1.4;}
+  .mode-count{font-family:'Bebas Neue',sans-serif;font-size:22px;color:var(--muted);text-align:right;}
+  .game-topbar{display:flex;align-items:center;gap:10px;margin-bottom:10px;padding:8px 12px;background:var(--surface);border:1px solid var(--border);border-radius:10px; margin-top:10px;}
+  .back-btn{background:none;border:none;color:var(--muted);cursor:pointer;font-size:18px;padding:0;}
+  .current-mode-badge{font-family:'Bebas Neue',sans-serif;font-size:12px;letter-spacing:2px;padding:3px 10px;border-radius:99px;}
+  .badge-normal{background:rgba(16,185,129,0.15);color:var(--normal);}
+  .badge-picante{background:rgba(249,115,22,0.15);color:var(--picante);}
+  .badge-extremo{background:rgba(239,68,68,0.15);color:var(--extremo);}
+  .progress-wrap{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:8px 12px;margin-bottom:10px;}
+  .progress-bar{height:4px;background:var(--border);border-radius:99px;overflow:hidden;}
+  .progress-fill{height:100%;background:linear-gradient(90deg,var(--truth),var(--accent));transition:width 0.5s;}
+  .choice-section{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;}
+  .choice-btn{padding:14px 12px;border:2px solid transparent;border-radius:14px;cursor:pointer;font-family:'Bebas Neue',sans-serif;font-size:28px;background:var(--surface);}
+  .btn-truth{border-color:var(--truth);color:var(--truth);}
+  .btn-dare{border-color:var(--dare);color:var(--dare);}
+  .card-wrap{min-height:160px;display:flex;align-items:center;justify-content:center;margin-bottom:10px;}
+  .card{width:100%;padding:24px;border-radius:16px;border:1px solid var(--border);background:var(--surface);animation:cardIn 0.4s cubic-bezier(.17,.67,.83,.67);}
+  @keyframes cardIn{from{opacity:0;transform:scale(0.9) translateY(20px);} to{opacity:1;transform:scale(1) translateY(0);}}
+  .truth-card{border-left:5px solid var(--truth);} .dare-card{border-left:5px solid var(--dare);}
+  .card-text{font-size:18px; line-height:1.4; font-weight:500;}
+  .add-section{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:16px; transition: 0.3s;}
+  .add-section.locked{opacity:0.3; filter: grayscale(1); pointer-events: none;}
+  textarea{width:100%;padding:12px;background:var(--bg);border:1px solid var(--border);border-radius:10px;color:#fff;margin:10px 0;height:80px;resize:none;}
+  .submit-btn{width:100%;padding:12px;border:none;border-radius:10px;background:linear-gradient(135deg,var(--truth),var(--dare));color:white;font-family:'Bebas Neue',sans-serif;font-size:18px;cursor:pointer;}
+  .tog-btn{padding:6px 12px;border-radius:8px;border:1px solid var(--border);background:transparent;color:var(--muted);cursor:pointer;font-size:12px;}
+  .tog-btn.active{background:var(--accent);color:black;border-color:var(--accent);}
+  .toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:var(--green);color:white;padding:10px 20px;border-radius:20px;display:none;z-index:1000;}
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <div class="screen active" id="screenMode">
+    <header>
+      <div class="logo">VERDAD<br>O RETO</div>
+      <p class="tagline">El juego de la comunidad 🎲</p>
+    </header>
+    <div class="mode-cards">
+      <div class="mode-card mode-normal" onclick="enterMode('normal')">
+        <div class="mode-icon">😄</div>
+        <div class="mode-info"><div class="mode-name">NORMAL</div><div class="mode-desc">Para toda la joda.</div></div>
+        <div class="mode-count" id="countNormal">--</div>
+      </div>
+      <div class="mode-card mode-picante" onclick="enterMode('picante')">
+        <div class="mode-icon">🌶️</div>
+        <div class="mode-info"><div class="mode-name">PICANTE</div><div class="mode-desc">Sube el tono.</div></div>
+        <div class="mode-count" id="countPicante">--</div>
+      </div>
+      <div class="mode-card mode-extremo" onclick="enterMode('extremo')">
+        <div class="mode-icon">💀</div>
+        <div class="mode-info"><div class="mode-name">EXTREMO</div><div class="mode-desc">Sin filtros.</div></div>
+        <div class="mode-count" id="countExtremo">--</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="screen" id="screenGame">
+    <div class="game-topbar">
+      <button class="back-btn" onclick="goBack()">← Volver</button>
+      <span class="current-mode-badge" id="modeBadge">NORMAL</span>
+    </div>
+
+    <div class="progress-wrap">
+      <div style="display:flex; justify-content: space-between; font-size: 11px; margin-bottom:5px">
+        <span>Tu Progreso</span> <span id="progressText">0/10</span>
+      </div>
+      <div class="progress-bar"><div class="progress-fill" id="progressFill" style="width:0%"></div></div>
+      <p id="unlockNote" style="font-size:10px; color:var(--muted); margin-top:5px; text-align:center;">Juega 10 veces para añadir cartas</p>
+    </div>
+
+    <div class="choice-section">
+      <button class="choice-btn btn-truth" onclick="drawCard('truth')">VERDAD</button>
+      <button class="choice-btn btn-dare" onclick="drawCard('dare')">RETO</button>
+    </div>
+
+    <div class="card-wrap" id="cardWrap">
+        <div style="color:var(--muted)">Toca un botón para empezar</div>
+    </div>
+
+    <div class="add-section locked" id="addSection">
+      <h3 style="font-family:'Bebas Neue'; color:var(--accent)">✍️ AGREGAR CARTA</h3>
+      <div style="margin:10px 0; display:flex; gap:5px">
+          <button class="tog-btn active" id="btnTogTruth" onclick="setType('truth')">VERDAD</button>
+          <button class="tog-btn" id="btnTogDare" onclick="setType('dare')">RETO</button>
+      </div>
+      <textarea id="cardText" placeholder="Escribe aquí..."></textarea>
+      <div style="display:flex; align-items:center; gap:10px; margin-bottom:10px;">
+          <span id="captchaQuestion" style="font-size:12px"></span>
+          <input type="number" id="captchaAnswer" style="width:50px; padding:5px; border-radius:5px; border:none;">
+      </div>
+      <button class="submit-btn" onclick="submitCard()">ENVIAR AL MAZO</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast">¡Carta enviada!</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getFirestore, collection, addDoc, onSnapshot, query, orderBy, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+const firebaseConfig = {
+    apiKey: "AIzaSyDTtD4dXW1r1RWLDSOWUGIiqskAavP1Zz0",
+    authDomain: "verdad-952a0.firebaseapp.com",
+    projectId: "verdad-952a0",
+    storageBucket: "verdad-952a0.firebasestorage.app",
+    messagingSenderId: "648263922519",
+    appId: "1:648263922519:web:3e3f04d3bf0b2ad13f4412"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+const PLAYS_TO_UNLOCK = 10;
+
+let allCards = [];
+let currentMode = 'normal';
+let selectedType = 'truth';
+let myPlays = parseInt(localStorage.getItem('vr-plays') || '0');
+let correctAnswer = 0;
+
+// Inicialización
+function init() {
+    listenCards();
+    updateProgressUI();
+    generateCaptcha();
+}
+
+function listenCards() {
+    const q = query(collection(db, 'cards'), orderBy('createdAt', 'desc'));
+    onSnapshot(q, (snap) => {
+        allCards = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        updateCounts();
+    });
+}
+
+function updateCounts() {
+    ['normal', 'picante', 'extremo'].forEach(m => {
+        const count = allCards.filter(c => c.mode === m).length;
+        document.getElementById('count' + m.charAt(0).toUpperCase() + m.slice(1)).innerText = count;
+    });
+}
+
+// Navegación
+window.enterMode = (mode) => {
+    currentMode = mode;
+    document.getElementById('modeBadge').innerText = mode.toUpperCase();
+    document.getElementById('modeBadge').className = `current-mode-badge badge-${mode}`;
+    document.getElementById('screenMode').classList.remove('active');
+    document.getElementById('screenGame').classList.add('active');
+};
+
+window.goBack = () => {
+    document.getElementById('screenGame').classList.remove('active');
+    document.getElementById('screenMode').classList.add('active');
+};
+
+// Lógica de Juego
+window.drawCard = (type) => {
+    const pool = allCards.filter(c => c.mode === currentMode && c.type === type);
+    const wrap = document.getElementById('cardWrap');
+
+    if (pool.length === 0) {
+        wrap.innerHTML = `<div class="card">Aún no hay cartas aquí. ¡Agrega la primera!</div>`;
+        return;
+    }
+
+    const card = pool[Math.floor(Math.random() * pool.length)];
+    wrap.innerHTML = `
+        <div class="card ${card.type}-card">
+            <div style="font-size:10px; color:var(--muted); margin-bottom:10px">${card.type.toUpperCase()}</div>
+            <div class="card-text">${card.text}</div>
+            <div style="font-size:10px; color:var(--muted); margin-top:15px">Autor: ${card.author || 'Anónimo'}</div>
+        </div>
+    `;
+
+    myPlays++;
+    localStorage.setItem('vr-plays', myPlays);
+    updateProgressUI();
+};
+
+function updateProgressUI() {
+    const pct = Math.min(100, (myPlays / PLAYS_TO_UNLOCK) * 100);
+    document.getElementById('progressFill').style.width = pct + '%';
+    document.getElementById('progressText').innerText = `${myPlays}/${PLAYS_TO_UNLOCK}`;
+    
+    if (myPlays >= PLAYS_TO_UNLOCK) {
+        document.getElementById('addSection').classList.remove('locked');
+        document.getElementById('unlockNote').innerText = "✅ ¡Ya puedes colaborar!";
+    }
+}
+
+// Formulario
+window.setType = (t) => {
+    selectedType = t;
+    document.getElementById('btnTogTruth').classList.toggle('active', t === 'truth');
+    document.getElementById('btnTogDare').classList.toggle('active', t === 'dare');
+};
+
+function generateCaptcha() {
+    const a = Math.floor(Math.random() * 10);
+    const b = Math.floor(Math.random() * 10);
+    correctAnswer = a + b;
+    document.getElementById('captchaQuestion').innerText = `¿Cuánto es ${a} + ${b}?`;
+}
+
+window.submitCard = async () => {
+    const text = document.getElementById('cardText').value.trim();
+    const ans = parseInt(document.getElementById('captchaAnswer').value);
+
+    if (text.length < 5) return alert("Escribe algo más largo.");
+    if (ans !== correctAnswer) return alert("Captcha incorrecto.");
+
+    try {
+        await addDoc(collection(db, 'cards'), {
+            type: selectedType,
+            mode: currentMode,
+            text: text,
+            author: "Usuario",
+            createdAt: serverTimestamp()
+        });
+        
+        document.getElementById('cardText').value = "";
+        document.getElementById('captchaAnswer').value = "";
+        showToast();
+        generateCaptcha();
+    } catch (e) { console.error(e); }
+};
+
+function showToast() {
+    const t = document.getElementById('toast');
+    t.style.display = 'block';
+    setTimeout(() => t.style.display = 'none', 3000);
+}
+
+init();
+</script>
+</body>
+</html>
