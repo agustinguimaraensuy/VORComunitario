@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>IMPOSTOR - JUEGO DE SALA</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg:#05050a; --surface:#0f0a14; --border:#2d1b3d;
+    --primary:#3b82f6; --impostor:#ef4444; --text:#fce7f3; --muted:#6b7280;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+  body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min-height:100vh;
+    background-image: radial-gradient(circle at 50% -20%, #1e3a8a 0%, transparent 50%); overflow-x:hidden;}
+  .wrap{max-width:500px;margin:0 auto;padding:20px;}
+  
+  header{text-align:center;padding:30px 0 10px;}
+  .logo{font-family:'Bebas Neue';font-size:60px;letter-spacing:2px;color:var(--primary);text-shadow: 0 0 20px rgba(59,130,246,0.5);}
+
+  .card{background:var(--surface);border:1px solid var(--border);border-radius:24px;padding:30px;margin-top:20px;text-align:center;box-shadow: 0 10px 30px rgba(0,0,0,0.5);}
+  input{width:100%;padding:18px;background:#000;border:1px solid var(--border);border-radius:14px;color:#fff;margin:12px 0;text-align:center;font-size:18px;outline:none;}
+  input:focus{border-color:var(--primary);}
+  
+  .btn{width:100%;padding:18px;border:none;border-radius:14px;font-family:'Bebas Neue';font-size:22px;cursor:pointer;margin-top:12px;transition:0.2s;letter-spacing:1px;}
+  .btn-primary{background:var(--primary);color:white;}
+  .btn-outline{background:transparent;border:2px solid var(--primary);color:var(--primary);}
+  .btn-start{background:var(--impostor);color:white;margin-top:25px; box-shadow: 0 0 15px rgba(239,68,68,0.3);}
+  .btn:active{transform:scale(0.96);}
+
+  .player-list{margin-top:20px;text-align:left; background:rgba(0,0,0,0.3); border-radius:15px; padding:10px;}
+  .player-item{padding:12px;border-bottom:1px solid rgba(255,255,255,0.05);display:flex;justify-content:space-between; font-weight:500;}
+  .player-item:last-child{border:none;}
+
+  #gameScreen, #lobbyScreen{display:none;}
+  .secret-box{font-size:38px;font-family:'Bebas Neue';color:var(--primary);margin:25px 0;padding:30px;border:2px dashed var(--border);border-radius:15px;background:rgba(255,255,255,0.02);}
+  .impostor-text{color:var(--impostor);animation: pulse 1s infinite; text-shadow: 0 0 15px var(--impostor);}
+  @keyframes pulse { 0% { opacity: 1; transform:scale(1); } 50% { opacity: 0.7; transform:scale(1.02); } 100% { opacity: 1; transform:scale(1); } }
+  
+  .instruction-card{font-size:15px; color:var(--muted); line-height:1.5; margin-top:15px; padding:10px;}
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <header>
+    <div class="logo">EL IMPOSTOR</div>
+  </header>
+
+  <div id="setupScreen">
+    <div class="card">
+      <input type="text" id="playerName" placeholder="Tu Apodo (Ej: Juan)">
+      <button class="btn btn-primary" onclick="createRoom()">CREAR SALA NUEVA</button>
+      <div style="margin:20px 0; color:var(--border); font-size:12px; letter-spacing:2px;">O UNITE A UNA</div>
+      <input type="number" id="roomCodeInput" placeholder="Código de 4 dígitos">
+      <button class="btn btn-outline" onclick="joinRoom()">ENTRAR A LA SALA</button>
+    </div>
+  </div>
+
+  <div id="lobbyScreen">
+    <div class="card">
+      <p style="color:var(--muted); font-size:12px; letter-spacing:2px;">CÓDIGO PARA TUS AMIGOS:</p>
+      <h2 id="displayCode" style="font-size:50px; font-family:'Bebas Neue'; color:#fff; margin:10px 0;">----</h2>
+      <div class="player-list" id="playerList"></div>
+      <div id="hostControls" style="display:none;">
+        <button class="btn btn-start" onclick="startGame()">INICIAR PARTIDA</button>
+        <p style="font-size:11px; color:var(--muted); margin-top:10px;">Necesitas al menos 3 jugadores</p>
+      </div>
+      <div id="waitMsg" style="margin-top:20px; color:var(--muted); font-size:14px;">Esperando que el Host inicie...</div>
+    </div>
+  </div>
+
+  <div id="gameScreen">
+    <div class="card">
+        <p style="letter-spacing:1px; font-size:13px;">TU PERSONAJE SECRETO:</p>
+        <div id="secretRole" class="secret-box">...</div>
+        <div class="instruction-card" id="gameInstruction"></div>
+        
+        <button id="resetBtn" class="btn btn-outline" onclick="resetRoom()" style="display:none; margin-top:25px;">NUEVA RONDA</button>
+        <button class="btn" onclick="location.reload()" style="background:none; color:var(--muted); font-size:14px; margin-top:10px;">SALIR DE LA SALA</button>
+    </div>
+  </div>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getFirestore, doc, setDoc, onSnapshot, updateDoc
