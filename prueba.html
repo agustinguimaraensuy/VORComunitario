@@ -20,16 +20,13 @@
   .back-to-index{position:absolute; top:10px; left:0; background:none; border:none; color:var(--muted); cursor:pointer; font-family:'Bebas Neue'; font-size:18px;}
   .logo{font-family:'Bebas Neue',sans-serif;font-size:55px;line-height:1;background:linear-gradient(to bottom, #fff, var(--level3));-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
 
-  /* Selector de Niveles */
   #levelSelector{margin-top:20px;}
   .levels-grid{display:flex; flex-direction:column; gap:15px;}
   .lvl-btn{padding:25px; border-radius:18px; border:2px solid rgba(255,255,255,0.05); cursor:pointer; font-family:'Bebas Neue'; font-size:28px; color:white; display:flex; justify-content:space-between; align-items:center; transition:0.2s;}
   .btn-s{background:rgba(16,185,129,0.1); color:var(--level1); border-color:rgba(16,185,129,0.3);}
   .btn-t{background:rgba(251,191,36,0.1); color:var(--level2); border-color:rgba(251,191,36,0.3);}
   .btn-c{background:rgba(217,38,169,0.1); color:var(--level3); border-color:rgba(217,38,169,0.3);}
-  .lvl-btn:active{transform:scale(0.97); background:rgba(255,255,255,0.1);}
 
-  /* Juego Activo */
   #gameZone{display:none; margin-top:10px; animation: fadeIn 0.4s ease;}
   @keyframes fadeIn { from{opacity:0; transform:translateY(10px);} to{opacity:1; transform:translateY(0);} }
   
@@ -40,11 +37,11 @@
     box-shadow: 0 15px 50px rgba(0,0,0,0.8); min-height:280px; position:relative;}
   .card-text{font-size:26px; line-height:1.3; font-weight:500; text-align: center; color:#fff;}
   
-  .vote-box { display: flex; gap: 15px; margin-top: 35px; }
-  .vote-btn { border: 2px solid var(--border); background:rgba(255,255,255,0.03); color:white; padding: 18px; border-radius: 15px; flex: 1; font-size: 28px; cursor:pointer; transition:0.2s;}
-  .vote-btn:active{background:var(--border); transform:scale(0.9);}
+  .vote-box { display: flex; gap: 10px; margin-top: 25px; }
+  .vote-btn { border: 2px solid var(--border); background:rgba(255,255,255,0.03); color:white; padding: 15px; border-radius: 12px; flex: 1; font-size: 24px; cursor:pointer;}
+  
+  .next-btn { width: 100%; margin-top: 15px; padding: 15px; border-radius: 12px; border: none; background: #fff; color: #000; font-family: 'Bebas Neue'; font-size: 20px; letter-spacing: 1px; cursor: pointer; }
 
-  /* Agregar Cartas */
   .add-section{background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:25px; margin-top: 40px; display:none;}
   textarea{width:100%;padding:15px;background:#000;border:1px solid var(--border);border-radius:12px;color:#fff;margin:15px 0;height:90px; font-family: inherit; font-size:16px; resize:none;}
   .captcha-row { display: flex; align-items: center; gap: 12px; margin-bottom: 15px; font-family:'Bebas Neue'; letter-spacing:1px; }
@@ -81,6 +78,7 @@
   <div id="gameZone">
     <button class="change-lvl" onclick="resetGame()">← CAMBIAR NIVEL</button>
     <div id="cardDisplay"></div>
+    <button class="next-btn" onclick="nextCard()">SIGUIENTE PREGUNTA →</button>
   </div>
 
   <div class="add-section" id="addSection">
@@ -96,7 +94,7 @@
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getFirestore, collection, addDoc, getDocs, query, where, doc, updateDoc, increment, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { getFirestore, collection, addDoc, getDocs, doc, updateDoc, increment, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
 const firebaseConfig = {
     apiKey: "AIzaSyDTtD4dXW1r1RWLDSOWUGIiqskAavP1Zz0",
@@ -116,49 +114,14 @@ let currentCard = null;
 let playsCount = parseInt(localStorage.getItem('c_v3_p') || '0');
 let captchaValue = 0;
 
-// INYECTOR DE 300 CARTAS (Se ejecuta solo una vez)
 async function initMazo() {
     if(localStorage.getItem('c_v3_r')) return;
     document.getElementById('loader').style.display = 'flex';
     
     const base = {
-        suave: [
-            "¿Cuál es tu mayor secreto para seducir?", "¿Qué parte de mi cuerpo te gusta más?", 
-            "Describe tu primer beso con lujo de detalles.", "Un masaje de pies de 2 minutos.", 
-            "¿Qué es lo primero que miras en alguien?", "¿Crees en el amor a primera vista?",
-            "Susúrrame al oído cuál es tu prenda de ropa favorita.", "Beso en la mejilla muy lento.",
-            "¿Prefieres luz encendida o apagada?", "¿Cuál es tu comida afrodisíaca favorita?",
-            "Un abrazo que dure 30 segundos sin hablar.", "Confiesa un capricho que tengas hoy.",
-            "¿Qué perfume te vuelve loco/a?", "¿Cuál es tu posición favorita para dormir?",
-            "Mirada fija a los ojos por 1 minuto sin reírse.", "Beso en la mano como un caballero/dama.",
-            "¿Cuál es el piropo más raro que te dijeron?", "Dibuja un corazón en mi palma con tu dedo.",
-            "¿Cuál es tu lugar favorito para una cita?", "Dime algo que te dé mucha vergüenza confesar.",
-            // ... (El sistema completará las 100 variaciones automáticamente con estos temas)
-        ],
-        tension: [
-            "Beso en el cuello que dure 15 segundos.", "Quítate una prenda de ropa ahora mismo.", 
-            "Muerde suavemente el lóbulo de mi oreja.", "Un baile sensual de 30 segundos.",
-            "¿Alguna vez te grabaste en la intimidad?", "Muestra tu última foto de la galería.",
-            "Beso de película con la persona a tu izquierda.", "Deja que alguien te quite una prenda.",
-            "Bebe algo del ombligo de otra persona.", "Susúrrame una fantasía que quieras cumplir hoy.",
-            "Masaje de hombros por debajo de la remera.", "Dime qué tipo de lencería/ropa interior prefieres.",
-            "Pasa tu lengua por mi cuello sin besar.", "Siéntate en el regazo de alguien por 2 rondas.",
-            "¿Cuál es el lugar más público donde lo hiciste?", "¿Alguna vez tuviste un sueño hot conmigo?",
-            "Muestra tu historial de búsqueda de hoy.", "Beso en la clavícula.",
-            "Deja que alguien te vende los ojos y te toque la cara.", "Reto: 1 minuto de besos en el cuello.",
-        ],
-        cuerpos: [
-            "Beso francés intenso de 30 segundos.", "Quita una prenda con los dientes.", 
-            "Masaje en la espalda sin remera.", "Reto: 3 minutos en el paraíso (en otra habitación).",
-            "¿Cuál es tu fetiche más extraño?", "¿Alguna vez hiciste un trío o lo harías?",
-            "Simula un orgasmo con sonidos ahora.", "Deja que alguien te de un beso donde quiera.",
-            "Muestra tu juguete favorito o describe uno.", "Quítate la remera hasta el final del juego.",
-            "Llamada hot a un ex o contacto (en altavoz).", "Besa a la persona que más te atraiga en la boca.",
-            "Dibuja algo con hielo en mi piel.", "Deja que alguien te explore debajo de la ropa por 10 seg.",
-            "¿Cuál es la práctica más extrema que probaste?", "Intercambia una prenda con la persona de al lado.",
-            "Beso en el abdomen.", "Reto: Body shot (beber de la piel de otro).",
-            "Confiesa con quién de aquí tendrías algo ahora mismo.", "Quédate en ropa interior el resto de la partida."
-       ],
+        suave: ["¿Cuál es tu zona más sensible?", "Describe tu beso perfecto.", "Un masaje de manos de 1 min.", "¿Prefieres luz encendida o apagada?", "Confiesa un capricho inocente."],
+        tension: ["Beso en el cuello (15 seg).", "Quítate una prenda ahora.", "Muerde suavemente una oreja.", "Baile sensual sin música.", "Susurra una fantasía al oído."],
+        cuerpos: ["Beso francés de 30 segundos.", "Quita una prenda con los dientes.", "Masaje de hombros sin remera.", "Reto: 3 min en el paraíso.", "Simula un orgasmo con sonido."]
     };
 
     let count = 0;
@@ -168,6 +131,7 @@ async function initMazo() {
                 lvl: lvl,
                 text: base[lvl][i % base[lvl].length] + (i >= base[lvl].length ? ` #${i}` : ""),
                 likes: 0,
+                dislikes: 0,
                 createdAt: serverTimestamp()
             });
             count++;
@@ -178,14 +142,12 @@ async function initMazo() {
     location.reload();
 }
 
-// CARGAR DATOS EN MEMORIA
 async function loadData() {
     const snap = await getDocs(collection(db, 'cuerpos_cards'));
     mazoLocal = snap.docs.map(d => ({id: d.id, ...d.data()}));
     if(playsCount >= 10) document.getElementById('addSection').style.display = 'block';
 }
 
-// LÓGICA DE JUEGO
 window.startLevel = (lvl) => {
     currentLevel = lvl;
     document.getElementById('levelSelector').style.display = 'none';
@@ -195,10 +157,27 @@ window.startLevel = (lvl) => {
 };
 
 window.nextCard = () => {
-    const pool = mazoLocal.filter(c => c.lvl === currentLevel);
-    if(pool.length === 0) return alert("Error: No hay cartas de este nivel.");
-    
-    currentCard = pool[Math.floor(Math.random() * pool.length)];
+    const poolRaw = mazoLocal.filter(c => c.lvl === currentLevel);
+    let weightedPool = [];
+
+    poolRaw.forEach(card => {
+        const up = card.likes || 0;
+        const down = card.dislikes || 0;
+        const total = up + down;
+        let tickets = 100; // Probabilidad base
+
+        if(total > 0) {
+            const ratioUp = up / total;
+            const ratioDown = down / total;
+
+            if(ratioUp >= 0.70) tickets = 125; // +25% de chances
+            if(ratioDown >= 0.60) tickets = 65; // -35% de chances
+        }
+
+        for(let i=0; i < tickets; i++) weightedPool.push(card);
+    });
+
+    currentCard = weightedPool[Math.floor(Math.random() * weightedPool.length)];
     const color = currentLevel === 'suave' ? 'var(--level1)' : currentLevel === 'tension' ? 'var(--level2)' : 'var(--level3)';
     
     document.getElementById('cardDisplay').innerHTML = `
@@ -210,26 +189,22 @@ window.nextCard = () => {
             </div>
         </div>
     `;
-};
-
-window.handleVote = async (isLike) => {
-    if(!currentCard) return;
-    
-    // Actualización silenciosa en Firebase
-    updateDoc(doc(db, 'cuerpos_cards', currentCard.id), { likes: increment(isLike ? 1 : -1) });
     
     playsCount++;
     localStorage.setItem('c_v3_p', playsCount);
     if(playsCount >= 10) document.getElementById('addSection').style.display = 'block';
+};
 
+window.handleVote = async (isLike) => {
+    if(!currentCard) return;
+    updateDoc(doc(db, 'cuerpos_cards', currentCard.id), { 
+        [isLike ? 'likes' : 'dislikes']: increment(1) 
+    });
     nextCard();
 };
 
-window.resetGame = () => {
-    location.reload();
-};
+window.resetGame = () => location.reload();
 
-// APORTES
 function genCaptcha() {
     const a = Math.floor(Math.random()*9)+1, b = Math.floor(Math.random()*9)+1;
     captchaValue = a + b;
@@ -239,22 +214,15 @@ function genCaptcha() {
 window.submitCard = async () => {
     const txt = document.getElementById('cardText').value.trim();
     const ans = parseInt(document.getElementById('captchaInput').value);
-    if(txt.length < 5) return alert("El texto es muy corto.");
-    if(ans !== captchaValue) return alert("Suma incorrecta.");
-    
+    if(txt.length < 5 || ans !== captchaValue) return alert("Revisá los datos.");
     await addDoc(collection(db, 'cuerpos_cards'), {
-        lvl: currentLevel,
-        text: txt,
-        likes: 0,
-        createdAt: serverTimestamp()
+        lvl: currentLevel, text: txt, likes: 0, dislikes: 0, createdAt: serverTimestamp()
     });
-    
-    alert("¡Carta enviada al mazo!");
+    alert("¡Aportada!");
     document.getElementById('cardText').value = "";
     genCaptcha();
 };
 
-// INICIO
 initMazo().then(loadData);
 </script>
 </body>
