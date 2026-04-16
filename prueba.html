@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-<title>CUERPOS EN JUEGO - OFICIAL</title>
+<title>CUERPOS EN JUEGO - PREMIUM</title>
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
 <style>
   :root {
@@ -27,9 +27,7 @@
   .btn-t{background:rgba(251,191,36,0.1); color:var(--level2); border-color:rgba(251,191,36,0.3);}
   .btn-c{background:rgba(217,38,169,0.1); color:var(--level3); border-color:rgba(217,38,169,0.3);}
 
-  #gameZone{display:none; margin-top:10px; animation: fadeIn 0.4s ease;}
-  @keyframes fadeIn { from{opacity:0; transform:translateY(10px);} to{opacity:1; transform:translateY(0);} }
-  
+  #gameZone{display:none; margin-top:10px;}
   .change-lvl{background:none; border:none; color:var(--muted); font-family:'Bebas Neue'; cursor:pointer; margin-bottom:15px; font-size:16px; letter-spacing:1px;}
   
   .card{width:100%;padding:40px;border-radius:24px;border:3px solid var(--border);
@@ -48,16 +46,24 @@
   #captchaInput { width: 80px; padding: 10px; background: #000; border: 1px solid var(--border); color: #fff; border-radius: 8px; text-align:center; font-size:18px;}
   .submit-btn{width:100%;padding:16px;border:none;border-radius:12px;background:var(--level3);color:white;font-family:'Bebas Neue';font-size:22px;cursor:pointer;}
 
-  #loader{ position: fixed; inset: 0; background: var(--bg); display: none; flex-direction: column; align-items: center; justify-content: center; z-index: 100;}
+  /* Pantalla de carga (Delay) */
+  #delayLoader{ position: fixed; inset: 0; background: var(--bg); display: none; flex-direction: column; align-items: center; justify-content: center; z-index: 200; text-align: center;}
+  #mainLoader{ position: fixed; inset: 0; background: var(--bg); display: none; flex-direction: column; align-items: center; justify-content: center; z-index: 300;}
   .spinner { width: 45px; height: 45px; border: 4px solid var(--border); border-top-color: var(--level3); border-radius: 50%; animation: spin 0.8s linear infinite; }
   @keyframes spin { to { transform: rotate(360deg); } }
 </style>
 </head>
 <body>
 
-<div id="loader">
+<div id="mainLoader">
     <div class="spinner"></div>
     <p id="loadStatus" style="margin-top:20px; font-family:'Bebas Neue'; letter-spacing:2px; color:var(--level3)">SINCRONIZANDO MAZO...</p>
+</div>
+
+<div id="delayLoader">
+    <div class="spinner"></div>
+    <p style="margin-top:20px; font-family:'Bebas Neue'; letter-spacing:3px; color:#fff">PREPARANDO DESAFÍOS...</p>
+    <p style="color:var(--muted); font-size:12px; margin-top:10px;">CONECTANDO CON LA BASE DE DATOS</p>
 </div>
 
 <div class="wrap">
@@ -69,9 +75,9 @@
   <div id="levelSelector">
     <p style="text-align:center; color:var(--muted); margin-bottom:25px; font-size:13px; letter-spacing:3px; font-weight:700;">ELIJAN LA INTENSIDAD</p>
     <div class="levels-grid">
-      <button class="lvl-btn btn-s" onclick="startLevel('suave')">SUAVE <span>🍃</span></button>
-      <button class="lvl-btn btn-t" onclick="startLevel('tension')">TENSIÓN <span>🔥</span></button>
-      <button class="lvl-btn btn-c" onclick="startLevel('cuerpos')">CUERPOS <span>🔞</span></button>
+      <button class="lvl-btn btn-s" onclick="prepareLevel('suave')">SUAVE <span>🍃</span></button>
+      <button class="lvl-btn btn-t" onclick="prepareLevel('tension')">TENSIÓN <span>🔥</span></button>
+      <button class="lvl-btn btn-c" onclick="prepareLevel('cuerpos')">CUERPOS <span>🔞</span></button>
     </div>
   </div>
 
@@ -79,16 +85,16 @@
     <button class="change-lvl" onclick="resetGame()">← CAMBIAR NIVEL</button>
     <div id="cardDisplay"></div>
     <button class="next-btn" onclick="nextCard()">SIGUIENTE PREGUNTA →</button>
-  </div>
 
-  <div class="add-section" id="addSection">
-    <p style="font-family:'Bebas Neue'; color:var(--level3); font-size:20px; letter-spacing:1px;">APORTAR AL NIVEL ACTUAL</p>
-    <textarea id="cardText" placeholder="Escribí tu propuesta hot aquí..."></textarea>
-    <div class="captcha-row">
-        <span id="captchaText"></span>
-        <input type="number" id="captchaInput">
+    <div class="add-section" id="addSection">
+        <p style="font-family:'Bebas Neue'; color:var(--level3); font-size:20px; letter-spacing:1px;">APORTAR AL NIVEL ACTUAL</p>
+        <textarea id="cardText" placeholder="Escribí tu propuesta hot aquí..."></textarea>
+        <div class="captcha-row">
+            <span id="captchaText"></span>
+            <input type="number" id="captchaInput">
+        </div>
+        <button class="submit-btn" onclick="submitCard()">SUBIR AL MAZO</button>
     </div>
-    <button class="submit-btn" onclick="submitCard()">SUBIR AL MAZO</button>
   </div>
 </div>
 
@@ -116,10 +122,10 @@ let captchaValue = 0;
 
 async function initMazo() {
     if(localStorage.getItem('c_v3_r')) return;
-    document.getElementById('loader').style.display = 'flex';
+    document.getElementById('mainLoader').style.display = 'flex';
     
     const base = {
-        suave: ["¿Cuál es tu zona más sensible?", "Describe tu beso perfecto.", "Un masaje de manos de 1 min.", "¿Prefieres luz encendida o apagada?", "Confiesa un capricho inocente."],
+        suave: ["¿Cuál es tu zona más sensible?", "Describe tu beso perfecto.", "Un masaje de manos.", "Confiesa un capricho inocente.", "¿Qué perfume te atrae más?"],
         tension: ["Beso en el cuello (15 seg).", "Quítate una prenda ahora.", "Muerde suavemente una oreja.", "Baile sensual sin música.", "Susurra una fantasía al oído."],
         cuerpos: ["Beso francés de 30 segundos.", "Quita una prenda con los dientes.", "Masaje de hombros sin remera.", "Reto: 3 min en el paraíso.", "Simula un orgasmo con sonido."]
     };
@@ -128,11 +134,8 @@ async function initMazo() {
     for(let lvl in base) {
         for(let i=0; i<100; i++) {
             await addDoc(collection(db, 'cuerpos_cards'), {
-                lvl: lvl,
-                text: base[lvl][i % base[lvl].length] + (i >= base[lvl].length ? ` #${i}` : ""),
-                likes: 0,
-                dislikes: 0,
-                createdAt: serverTimestamp()
+                lvl: lvl, text: base[lvl][i % base[lvl].length] + (i >= base[lvl].length ? ` #${i}` : ""),
+                likes: 0, dislikes: 0, createdAt: serverTimestamp()
             });
             count++;
             document.getElementById('loadStatus').innerText = `CARGANDO MAZO: ${count}/300`;
@@ -144,19 +147,33 @@ async function initMazo() {
 
 async function loadData() {
     const snap = await getDocs(collection(db, 'cuerpos_cards'));
-    mazoLocal = snap.docs.map(d => ({id: d.id, ...d.data()}));
-    if(playsCount >= 10) document.getElementById('addSection').style.display = 'block';
+    mazoLocal = snap.docs.map(d => ({id: doc(db, 'cuerpos_cards', d.id).id, ...d.data()}));
 }
 
-window.startLevel = (lvl) => {
+// Nueva función para manejar el delay de 5 segundos
+window.prepareLevel = (lvl) => {
     currentLevel = lvl;
+    document.getElementById('delayLoader').style.display = 'flex';
+    
+    setTimeout(() => {
+        document.getElementById('delayLoader').style.display = 'none';
+        startLevel();
+    }, 5000);
+};
+
+function startLevel() {
     document.getElementById('levelSelector').style.display = 'none';
     document.getElementById('gameZone').style.display = 'block';
     nextCard();
     genCaptcha();
-};
+}
 
 window.nextCard = () => {
+    if(mazoLocal.length === 0) {
+        alert("Sincronizando con Firebase... espera un momento.");
+        return loadData();
+    }
+
     const poolRaw = mazoLocal.filter(c => c.lvl === currentLevel);
     let weightedPool = [];
 
@@ -164,16 +181,11 @@ window.nextCard = () => {
         const up = card.likes || 0;
         const down = card.dislikes || 0;
         const total = up + down;
-        let tickets = 100; // Probabilidad base
-
+        let tickets = 100;
         if(total > 0) {
-            const ratioUp = up / total;
-            const ratioDown = down / total;
-
-            if(ratioUp >= 0.70) tickets = 125; // +25% de chances
-            if(ratioDown >= 0.60) tickets = 65; // -35% de chances
+            if(up / total >= 0.70) tickets = 125;
+            if(down / total >= 0.60) tickets = 65;
         }
-
         for(let i=0; i < tickets; i++) weightedPool.push(card);
     });
 
@@ -192,7 +204,7 @@ window.nextCard = () => {
     
     playsCount++;
     localStorage.setItem('c_v3_p', playsCount);
-    if(playsCount >= 10) document.getElementById('addSection').style.display = 'block';
+    updateAportesVisibility();
 };
 
 window.handleVote = async (isLike) => {
@@ -203,7 +215,21 @@ window.handleVote = async (isLike) => {
     nextCard();
 };
 
-window.resetGame = () => location.reload();
+function updateAportesVisibility() {
+    const addSection = document.getElementById('addSection');
+    if(playsCount >= 10 && currentLevel) {
+        addSection.style.display = 'block';
+    } else {
+        addSection.style.display = 'none';
+    }
+}
+
+window.resetGame = () => {
+    currentLevel = null;
+    document.getElementById('levelSelector').style.display = 'block';
+    document.getElementById('gameZone').style.display = 'none';
+    updateAportesVisibility();
+};
 
 function genCaptcha() {
     const a = Math.floor(Math.random()*9)+1, b = Math.floor(Math.random()*9)+1;
