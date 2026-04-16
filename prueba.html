@@ -1,22 +1,78 @@
 <!DOCTYPE html>
-<html>
+<html lang="es">
 <head>
-    <title>Inyector Extremo</title>
-    <style>
-        body { background: #080810; color: white; font-family: sans-serif; text-align: center; padding: 50px; }
-        button { padding: 20px; background: #ef4444; border: none; font-weight: bold; cursor: pointer; border-radius: 10px; color: white; font-size: 1.2rem; }
-        #status { margin-top: 20px; color: #fbbf24; font-family: monospace; }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>CUERPOS EN JUEGO - PRO</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg:#05050a; --surface:#0f0a14; --border:#2d1b3d;
+    --level1:#10b981; --level2:#fbbf24; --level3:#d926a9;
+    --text:#fce7f3; --muted:#8b5cf6;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+  body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min-height:100vh;
+    background-image: radial-gradient(circle at 50% -20%, #311b92 0%, transparent 50%);}
+  .wrap{max-width:720px;margin:0 auto;padding:0 15px 20px;}
+  
+  header{text-align:center;padding:40px 0 20px; position: relative;}
+  .back-to-index{position:absolute; top:20px; left:0; background:none; border:none; color:var(--muted); cursor:pointer; font-family:'Bebas Neue'; font-size:18px;}
+  .logo{font-family:'Bebas Neue',sans-serif;font-size:60px;line-height:0.9;background:linear-gradient(to bottom, #fff, var(--level3));-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+
+  /* Selectores de Nivel */
+  .levels-grid{display:grid; grid-template-columns: 1fr 1fr 1fr; gap:10px; margin-top:20px;}
+  .lvl-btn{padding:15px 5px; border-radius:12px; border:1px solid rgba(255,255,255,0.1); cursor:pointer; font-family:'Bebas Neue'; font-size:18px; color:white; transition:0.2s;}
+  .btn-s{background:rgba(16,185,129,0.2); color:var(--level1); border-color:var(--level1);}
+  .btn-t{background:rgba(251,191,36,0.2); color:var(--level2); border-color:var(--level2);}
+  .btn-c{background:rgba(217,38,169,0.2); color:var(--level3); border-color:var(--level3);}
+  .lvl-btn:active{transform:scale(0.95);}
+
+  /* Carta */
+  .card-container{margin-top:25px; min-height:220px;}
+  .card{width:100%;padding:35px;border-radius:24px;border:2px solid var(--border);
+    background:var(--surface); display:flex;flex-direction:column;justify-content:center;
+    box-shadow: 0 0 40px rgba(0,0,0,0.5); position:relative;}
+  .card-text{font-size:22px; line-height:1.4; font-weight:500; text-align: center;}
+  
+  .vote-box { display: flex; gap: 10px; margin-top: 25px; border-top: 1px solid var(--border); padding-top: 15px; }
+  .vote-btn { border: 1px solid var(--border); background:none; color:var(--text); padding: 10px; border-radius: 10px; flex: 1; font-family: 'Bebas Neue'; font-size: 14px;}
+
+  /* Cargador */
+  #loader{ position: fixed; inset: 0; background: var(--bg); display: none; flex-direction: column; align-items: center; justify-content: center; z-index: 100; text-align:center;}
+  .spinner { width: 40px; height: 40px; border: 4px solid var(--border); border-top-color: var(--level3); border-radius: 50%; animation: spin 0.8s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+</style>
 </head>
 <body>
-    <h1>Cargador Modo Extremo 🔥</h1>
-    <p>Este script cargará 200 cartas de alto voltaje al modo Extremo.</p>
-    <button id="btnCargar">CARGAR 200 CARTAS EXTREMAS</button>
-    <div id="status"></div>
+
+<div id="loader">
+    <div class="spinner"></div>
+    <p id="loadStatus" style="margin-top:20px; font-family:'Bebas Neue'; letter-spacing:2px; color:var(--level3)">PREPARANDO EL MAZO...</p>
+</div>
+
+<div class="wrap">
+  <header>
+    <button class="back-to-index" onclick="location.href='index.html'">← VOLVER</button>
+    <div class="logo">CUERPOS<br>EN JUEGO</div>
+  </header>
+
+  <div class="levels-grid">
+    <button class="lvl-btn btn-s" onclick="draw('suave')">SUAVE</button>
+    <button class="lvl-btn btn-t" onclick="draw('tension')">TENSIÓN</button>
+    <button class="lvl-btn btn-c" onclick="draw('cuerpos')">CUERPOS</button>
+  </div>
+
+  <div class="card-container" id="cardWrap">
+    <div class="card" style="border-style:dashed; opacity:0.6;">
+      <div class="card-text">Elegí el nivel de intensidad</div>
+    </div>
+  </div>
+</div>
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getFirestore, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { getFirestore, collection, addDoc, getDocs, query, where, doc, updateDoc, increment, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
 const firebaseConfig = {
     apiKey: "AIzaSyDTtD4dXW1r1RWLDSOWUGIiqskAavP1Zz0",
@@ -29,56 +85,59 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
+let mazo = [];
 
-const extremas = [
-    { t: "V", x: "¿Cuál es tu fantasía más oscura que nunca le contaste a nadie?" },
-    { t: "V", x: "¿Alguna vez tuviste una aventura con alguien de este grupo o un conocido mutuo?" },
-    { t: "V", x: "¿Qué es lo más atrevido que hiciste en un lugar público?" },
-    { t: "V", x: "¿Alguna vez enviaste fotos comprometidas a la persona equivocada? ¿Qué pasó?" },
-    { t: "V", x: "¿Cuál es el lugar más extraño donde tuviste relaciones?" },
-    { t: "V", x: "¿Alguna vez fuiste infiel o ayudaste a alguien a serlo?" },
-    { t: "V", x: "¿Qué buscarías en el historial de navegación de la persona que tenés a la derecha?" },
-    { t: "V", x: "¿Cuál fue tu experiencia sexual más vergonzosa?" },
-    { t: "R", x: "Quitale una prenda de ropa a la persona de tu elección usando solo los dientes." },
-    { t: "R", x: "Susurrale algo erótico al oído a la persona que más te atraiga de acá." },
-    { t: "R", x: "Dejá que alguien te escriba algo con un marcador en una parte del cuerpo que no sea la cara ni manos." },
-    { t: "R", x: "Hacé un baile sensual de 30 segundos frente a alguien del grupo." },
-    { t: "R", x: "Mandá un mensaje de texto sugerente a alguien de tus contactos y no des explicaciones por 5 minutos." },
-    { t: "R", x: "Dejá que alguien del grupo revise tus 'Mensajes Archivados' de WhatsApp." },
-    { t: "R", x: "Dale un beso en el cuello a la persona que tengas a tu izquierda." },
-    { t: "R", x: "Simulá un orgasmo de 10 segundos con sonido frente a todos." }
-];
-
-function generarVariedad() {
-    let mazoFinal = [];
-    for(let i=0; i < 200; i++) {
-        let base = extremas[i % extremas.length];
-        mazoFinal.push({
-            mode: "extremo",
-            type: base.t === "V" ? "truth" : "dare",
-            text: base.x + (i > extremas.length ? " #" + i : ""),
-            likes: 0,
-            dislikes: 0
-        });
+// Funciòn de carga masiva automática
+async function checkAndInject() {
+    const snap = await getDocs(collection(db, 'cuerpos_cards'));
+    if(snap.size < 300) {
+        document.getElementById('loader').style.display = 'flex';
+        const raw = {
+            suave: ["¿Cuál es tu zona más sensible?", "Dale un abrazo largo a alguien.", "Describe el beso perfecto.", "Susurra un secreto al oído.", "Masaje de manos por 1 min."],
+            tension: ["Beso en el cuello a elección.", "Quítate una prenda (excepto básica).", "Muerde suavemente la oreja de alguien.", "Baile pegado sin música.", "Muestra tu última foto hot."],
+            cuerpos: ["Beso francés de 30 segundos.", "Quita una prenda con los dientes.", "Masaje de hombros sin remera.", "Dibuja algo con la lengua en su piel.", "Llamada hot a un contacto."]
+        };
+        
+        for(let lvl in raw) {
+            for(let i=0; i<100; i++) {
+                await addDoc(collection(db, 'cuerpos_cards'), {
+                    lvl: lvl, 
+                    text: raw[lvl][i % raw[lvl].length] + (i > 5 ? ` #${i}` : ""),
+                    likes: 0, 
+                    createdAt: serverTimestamp()
+                });
+                document.getElementById('loadStatus').innerText = `CARGANDO MAZO: ${i}/300`;
+            }
+        }
+        location.reload();
     }
-    return mazoFinal;
 }
 
-document.getElementById('btnCargar').onclick = async () => {
-    const btn = document.getElementById('btnCargar');
-    const status = document.getElementById('status');
-    btn.disabled = true;
-    
-    const mazo = generarVariedad();
-    for (let i = 0; i < mazo.length; i++) {
-        await addDoc(collection(db, 'cards'), {
-            ...mazo[i],
-            createdAt: serverTimestamp()
-        });
-        status.innerText = `Cargando cartas extremas: ${i + 1} / 200`;
-    }
-    status.innerText = "¡CARGA EXTREMA FINALIZADA!";
+// Cargar mazo localmente
+async function loadMazo() {
+    const snap = await getDocs(collection(db, 'cuerpos_cards'));
+    mazo = snap.docs.map(d => ({id: d.id, ...d.data()}));
+}
+
+window.draw = (level) => {
+    const filtered = mazo.filter(c => c.lvl === level);
+    const card = filtered[Math.floor(Math.random()*filtered.length)];
+    document.getElementById('cardWrap').innerHTML = `
+        <div class="card" style="border-color: var(--level${level === 'suave' ? '1' : level === 'tension' ? '2' : '3'})">
+            <div class="card-text">${card.text}</div>
+            <div class="vote-box">
+                <button class="vote-btn" onclick="vote('${card.id}', false)">👎</button>
+                <button class="vote-btn" onclick="vote('${card.id}', true)">👍</button>
+            </div>
+        </div>`;
 };
+
+window.vote = async (id, isLike) => {
+    await updateDoc(doc(db, 'cuerpos_cards', id), { likes: increment(isLike ? 1 : -1) });
+    alert("Voto registrado");
+};
+
+checkAndInject().then(loadMazo);
 </script>
 </body>
 </html>
