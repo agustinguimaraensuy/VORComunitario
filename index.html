@@ -4,7 +4,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-<title>GAME HUB - MULTIJUEGOS</title>
+<title>SALTO GAMES - HUB</title>
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
 <style>
   :root { 
@@ -12,7 +12,6 @@
     --surface:#0f0a14; 
     --border:#2d1b3d; 
     --primary:#3b82f6; 
-    --accent:#8b5cf6;
     --text:#fce7f3; 
     --muted:#6b7280; 
   }
@@ -37,42 +36,38 @@
     text-align: center;
   }
 
-  header {
-    margin-bottom: 40px;
-  }
+  header { margin-bottom: 40px; }
 
   .logo {
     font-family: 'Bebas Neue';
     font-size: 70px;
-    line-height: 1;
     color: var(--primary);
     text-shadow: 0 0 30px rgba(59,130,246,0.5);
     letter-spacing: 2px;
   }
 
   .subtitle {
-    font-size: 14px;
+    font-size: 13px;
     color: var(--muted);
     text-transform: uppercase;
-    letter-spacing: 3px;
-    margin-top: 10px;
+    letter-spacing: 4px;
+    margin-top: 5px;
   }
 
-  /* Grid de Juegos */
   .game-grid {
     display: grid;
     grid-template-columns: 1fr;
-    gap: 20px;
+    gap: 15px;
   }
 
   .game-card {
     background: var(--surface);
     border: 1px solid var(--border);
-    border-radius: 24px;
-    padding: 25px;
+    border-radius: 20px;
+    padding: 22px;
     text-decoration: none;
     color: white;
-    transition: all 0.3s ease;
+    transition: 0.2s;
     display: flex;
     align-items: center;
     position: relative;
@@ -80,7 +75,7 @@
   }
 
   .game-card:active {
-    transform: scale(0.97);
+    transform: scale(0.96);
     background: #16111d;
   }
 
@@ -89,56 +84,48 @@
     position: absolute;
     left: 0;
     top: 0;
-    width: 5px;
+    width: 4px;
     height: 100%;
     background: var(--primary);
   }
 
   .game-icon {
-    font-size: 40px;
-    margin-right: 20px;
+    font-size: 32px;
+    margin-right: 18px;
+    width: 45px;
+    text-align: center;
   }
 
-  .game-info {
-    text-align: left;
-  }
+  .game-info { text-align: left; }
 
   .game-title {
     font-family: 'Bebas Neue';
-    font-size: 28px;
+    font-size: 26px;
     color: white;
     display: block;
+    line-height: 1;
   }
 
   .game-desc {
-    font-size: 13px;
+    font-size: 12px;
     color: var(--muted);
+    margin-top: 4px;
   }
 
-  /* Botón desactivado */
+  /* Botón Prueba Desactivado */
   .game-card.disabled {
-    opacity: 0.5;
+    opacity: 0.4;
     filter: grayscale(1);
     pointer-events: none;
     border-style: dashed;
   }
 
-  .badge {
-    position: absolute;
-    top: 15px;
-    right: 20px;
-    background: rgba(255,255,255,0.05);
-    padding: 4px 10px;
-    border-radius: 20px;
-    font-size: 10px;
-    color: var(--muted);
-  }
-
   footer {
     margin-top: auto;
-    padding: 40px 0;
-    font-size: 12px;
+    padding: 30px 0;
+    font-size: 11px;
     color: var(--muted);
+    letter-spacing: 1px;
   }
 </style>
 </head>
@@ -147,7 +134,7 @@
 <div class="wrap">
   <header>
     <div class="logo">GAME HUB</div>
-    <div class="subtitle">Salto, Uruguay</div>
+    <div class="subtitle">Salto · Uruguay</div>
   </header>
 
   <div class="game-grid">
@@ -156,32 +143,39 @@
       <div class="game-icon">🕵️‍♂️</div>
       <div class="game-info">
         <span class="game-title">EL IMPOSTOR</span>
-        <span class="game-desc">Descubrí quién miente antes que sea tarde.</span>
-      </div>
-      <span class="badge">MULTIJUGADOR</span>
-    </a>
-
-    <a href="ruleta.html" class="game-card">
-      <div class="game-icon">🎰</div>
-      <div class="game-info">
-        <span class="game-title">RULETA RUSA</span>
-        <span class="game-desc">¿Quién se llevará el castigo hoy?</span>
+        <span class="game-desc">Descubrí quién miente en el grupo.</span>
       </div>
     </a>
 
-    <a href="cultura.html" class="game-card">
-      <div class="game-icon">🧠</div>
+    <a href="quiensoy.html" class="game-card">
+      <div class="game-icon">❓❓</div>
       <div class="game-info">
-        <span class="game-title">CULTURA CHUPICUANTI</span>
-        <span class="game-desc">Respondé rápido o perdés.</span>
+        <span class="game-title">¿QUIÉN SOY?</span>
+        <span class="game-desc">Adiviná el personaje en tu frente.</span>
+      </div>
+    </a>
+
+    <a href="cuerpos.html" class="game-card">
+      <div class="game-icon">👯‍♂️</div>
+      <div class="game-info">
+        <span class="game-title">CUERPOS EN JUEGO</span>
+        <span class="game-desc">Desafíos físicos y de contacto.</span>
       </div>
     </a>
 
     <a href="verdad.html" class="game-card">
-      <div class="game-icon">🔥</div>
+      <div class="game-icon">😈</div>
       <div class="game-info">
         <span class="game-title">VERDAD O RETO</span>
-        <span class="game-desc">Subí la temperatura de la previa.</span>
+        <span class="game-desc">Secretos y desafíos picantes.</span>
+      </div>
+    </a>
+
+    <a href="shots.html" class="game-card">
+      <div class="game-icon">🥃</div>
+      <div class="game-info">
+        <span class="game-title">SHOTS</span>
+        <span class="game-desc">Juegos rápidos para beber.</span>
       </div>
     </a>
 
@@ -189,15 +183,14 @@
       <div class="game-icon">🧪</div>
       <div class="game-info">
         <span class="game-title">MODO PRUEBA</span>
-        <span class="game-desc">Desactivado por mantenimiento.</span>
+        <span class="game-desc">En mantenimiento.</span>
       </div>
-      <span class="badge">OFFLINE</span>
     </a>
 
   </div>
 
   <footer>
-    &copy; 2026 - Salto Gaming Solutions
+    PRODUCIDO EN SALTO &copy; 2026
   </footer>
 </div>
 
