@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-<title>IMPOSTOR - JUEGO DE SALA</title>
+<title>IMPOSTOR - SALA REALTIME</title>
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
 <style>
   :root {
@@ -25,7 +25,7 @@
   .btn{width:100%;padding:18px;border:none;border-radius:14px;font-family:'Bebas Neue';font-size:22px;cursor:pointer;margin-top:12px;transition:0.2s;letter-spacing:1px;}
   .btn-primary{background:var(--primary);color:white;}
   .btn-outline{background:transparent;border:2px solid var(--primary);color:var(--primary);}
-  .btn-start{background:var(--impostor);color:white;margin-top:25px; box-shadow: 0 0 15px rgba(239,68,68,0.3);}
+  .btn-start{background:var(--impostor);color:white;margin-top:25px;}
   .btn:active{transform:scale(0.96);}
 
   .player-list{margin-top:20px;text-align:left; background:rgba(0,0,0,0.3); border-radius:15px; padding:10px;}
@@ -34,10 +34,10 @@
 
   #gameScreen, #lobbyScreen{display:none;}
   .secret-box{font-size:38px;font-family:'Bebas Neue';color:var(--primary);margin:25px 0;padding:30px;border:2px dashed var(--border);border-radius:15px;background:rgba(255,255,255,0.02);}
-  .impostor-text{color:var(--impostor);animation: pulse 1s infinite; text-shadow: 0 0 15px var(--impostor);}
+  .impostor-text{color:var(--impostor);animation: pulse 1s infinite;}
   @keyframes pulse { 0% { opacity: 1; transform:scale(1); } 50% { opacity: 0.7; transform:scale(1.02); } 100% { opacity: 1; transform:scale(1); } }
   
-  .instruction-card{font-size:15px; color:var(--muted); line-height:1.5; margin-top:15px; padding:10px;}
+  .instruction-card{font-size:15px; color:var(--muted); line-height:1.5; margin-top:15px;}
 </style>
 </head>
 <body>
@@ -49,7 +49,7 @@
 
   <div id="setupScreen">
     <div class="card">
-      <input type="text" id="playerName" placeholder="Tu Apodo (Ej: Juan)">
+      <input type="text" id="playerName" placeholder="Tu Apodo">
       <button class="btn btn-primary" onclick="createRoom()">CREAR SALA NUEVA</button>
       <div style="margin:20px 0; color:var(--border); font-size:12px; letter-spacing:2px;">O UNITE A UNA</div>
       <input type="number" id="roomCodeInput" placeholder="Código de 4 dígitos">
@@ -59,14 +59,13 @@
 
   <div id="lobbyScreen">
     <div class="card">
-      <p style="color:var(--muted); font-size:12px; letter-spacing:2px;">CÓDIGO PARA TUS AMIGOS:</p>
+      <p style="color:var(--muted); font-size:12px; letter-spacing:2px;">CÓDIGO DE SALA:</p>
       <h2 id="displayCode" style="font-size:50px; font-family:'Bebas Neue'; color:#fff; margin:10px 0;">----</h2>
       <div class="player-list" id="playerList"></div>
       <div id="hostControls" style="display:none;">
         <button class="btn btn-start" onclick="startGame()">INICIAR PARTIDA</button>
-        <p style="font-size:11px; color:var(--muted); margin-top:10px;">Necesitas al menos 3 jugadores</p>
       </div>
-      <div id="waitMsg" style="margin-top:20px; color:var(--muted); font-size:14px;">Esperando que el Host inicie...</div>
+      <div id="waitMsg" style="margin-top:20px; color:var(--muted); font-size:14px;">Esperando al Host...</div>
     </div>
   </div>
 
@@ -75,13 +74,134 @@
         <p style="letter-spacing:1px; font-size:13px;">TU PERSONAJE SECRETO:</p>
         <div id="secretRole" class="secret-box">...</div>
         <div class="instruction-card" id="gameInstruction"></div>
-        
-        <button id="resetBtn" class="btn btn-outline" onclick="resetRoom()" style="display:none; margin-top:25px;">NUEVA RONDA</button>
-        <button class="btn" onclick="location.reload()" style="background:none; color:var(--muted); font-size:14px; margin-top:10px;">SALIR DE LA SALA</button>
+        <button class="btn btn-outline" onclick="location.reload()" style="margin-top:30px;">SALIR AL MENÚ</button>
     </div>
   </div>
 </div>
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getFirestore, doc, setDoc, onSnapshot, updateDoc
+import { getFirestore, doc, setDoc, onSnapshot, updateDoc, arrayUnion, getDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyBgXAxWOmLok8XkReoJouYAQRcLZP_yrHg",
+  authDomain: "impostor-4f464.firebaseapp.com",
+  projectId: "impostor-4f464",
+  storageBucket: "impostor-4f464.firebasestorage.app",
+  messagingSenderId: "711021445541",
+  appId: "1:711021445541:web:7c819e87f6e413bfa2e84c"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+let currentRoomId = null;
+let myName = "";
+let isHost = false;
+
+const personajes = ["Lionel Messi", "Cristiano Ronaldo", "Luis Suárez", "Dibu Martínez", "Shakira", "Bad Bunny", "Karol G", "Bizarrap", "Elon Musk", "Donald Trump", "Auronplay", "Ibai Llanos", "Batman", "Spider-Man", "Homero Simpson", "Mickey Mouse", "Shrek", "Duki", "Maradona", "Artigas"];
+
+window.createRoom = async () => {
+    try {
+        myName = document.getElementById('playerName').value.trim();
+        if(!myName) return alert("Poné tu nombre");
+        
+        currentRoomId = Math.floor(1000 + Math.random() * 9000).toString();
+        isHost = true;
+        
+        await setDoc(doc(db, "rooms", currentRoomId), {
+            status: "waiting",
+            players: [myName],
+            host: myName,
+            character: "",
+            impostor: ""
+        });
+        
+        showLobby();
+    } catch (e) {
+        console.error(e);
+        alert("Error: Revisá que las REGLAS en Firebase estén publicadas.");
+    }
+};
+
+window.joinRoom = async () => {
+    myName = document.getElementById('playerName').value.trim();
+    currentRoomId = document.getElementById('roomCodeInput').value.toString().trim();
+    if(!myName || !currentRoomId) return alert("Completá los campos");
+
+    const roomRef = doc(db, "rooms", currentRoomId);
+    const snap = await getDoc(roomRef);
+    
+    if(snap.exists()) {
+        await updateDoc(roomRef, { players: arrayUnion(myName) });
+        showLobby();
+    } else {
+        alert("La sala no existe.");
+    }
+};
+
+function showLobby() {
+    document.getElementById('setupScreen').style.display = 'none';
+    document.getElementById('lobbyScreen').style.display = 'block';
+    document.getElementById('displayCode').innerText = currentRoomId;
+    
+    if(isHost) {
+        document.getElementById('hostControls').style.display = 'block';
+        document.getElementById('waitMsg').style.display = 'none';
+    }
+
+    onSnapshot(doc(db, "rooms", currentRoomId), (snap) => {
+        const data = snap.data();
+        if(!data) return;
+
+        const list = document.getElementById('playerList');
+        list.innerHTML = data.players.map(p => `
+            <div class="player-item">
+                <span>${p}</span>
+                <span style="font-size:12px; color:var(--primary)">${p === data.host ? '👑 HOST' : 'LISTO'}</span>
+            </div>
+        `).join('');
+
+        if(data.status === "playing") renderGame(data);
+    });
+}
+
+window.startGame = async () => {
+    const roomRef = doc(db, "rooms", currentRoomId);
+    const snap = await getDoc(roomRef);
+    const players = snap.data().players;
+    
+    if(players.length < 3) return alert("Se necesitan 3 jugadores mínimo");
+
+    const character = personajes[Math.floor(Math.random() * personajes.length)];
+    const impostor = players[Math.floor(Math.random() * players.length)];
+
+    await updateDoc(roomRef, {
+        status: "playing",
+        character: character,
+        impostor: impostor
+    });
+};
+
+function renderGame(data) {
+    document.getElementById('lobbyScreen').style.display = 'none';
+    document.getElementById('gameScreen').style.display = 'block';
+    
+    const roleDiv = document.getElementById('secretRole');
+    const instruction = document.getElementById('gameInstruction');
+
+    if(myName === data.impostor) {
+        roleDiv.innerText = "¡SOS EL IMPOSTOR!";
+        roleDiv.classList.add('impostor-text');
+        roleDiv.style.color = "var(--impostor)";
+        instruction.innerHTML = "No sabés quién es el famoso. Escuchá las preguntas de los demás y tratá de adivinarlo para ganar.";
+    } else {
+        roleDiv.innerText = data.character;
+        roleDiv.classList.remove('impostor-text');
+        roleDiv.style.color = "var(--primary)";
+        instruction.innerHTML = "El personaje es <b>" + data.character + "</b>. Hacé preguntas sutiles para descubrir quién no tiene idea.";
+    }
+}
+</script>
+</body>
+</html>
