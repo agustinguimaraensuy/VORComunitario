@@ -6,7 +6,7 @@
 <title>EL IMPOSTOR - SALTO</title>
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
 <style>
-  :root { --bg:#05050a; --surface:#0f0a14; --border:#2d1b3d; --primary:#3b82f6; --impostor:#ef4444; --text:#fce7f3; --muted:#6b7280; }
+  :root { --bg:#05050a; --surface:#0f0a14; --border:#2d1b3d; --primary:#3b82f6; --impostor:#ef4444; --success:#10b981; --text:#fce7f3; --muted:#6b7280; }
   *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
   body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min-height:100vh;background-image: radial-gradient(circle at 50% -20%, #1e3a8a 0%, transparent 50%);}
   .wrap{max-width:500px;margin:0 auto;padding:20px;}
@@ -21,9 +21,24 @@
   
   .cat-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; padding:0 5px; }
   .cat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 15px; }
-  .cat-item { padding: 12px; border: 1px solid var(--border); border-radius: 12px; font-size: 13px; cursor: pointer; transition: 0.2s; color: var(--muted); }
-  .cat-item.active { background: var(--primary); border-color: var(--primary); color: white; font-weight: bold; }
-  .cat-item.disabled { opacity: 0.7; cursor: default; }
+  
+  /* ESTILOS DE CATEGORÍAS CORREGIDOS */
+  .cat-item { 
+    padding: 12px; 
+    border-radius: 12px; 
+    font-size: 13px; 
+    cursor: pointer; 
+    transition: 0.3s; 
+    font-weight: bold;
+    border: 2px solid transparent;
+    background: var(--impostor); /* Rojo por defecto (desactivado) */
+    color: white;
+  }
+  .cat-item.active { 
+    background: var(--success); /* Verde si está seleccionado */
+    box-shadow: 0 0 10px rgba(16, 185, 129, 0.2);
+  }
+  .cat-item.disabled { opacity: 0.8; cursor: default; }
 
   .player-list{margin-top:20px;text-align:left; background:rgba(0,0,0,0.3); border-radius:15px; padding:10px;}
   .player-item{padding:10px; border-bottom:1px solid rgba(255,255,255,0.05); display:flex; justify-content:space-between; font-size: 14px;}
@@ -32,7 +47,6 @@
   .secret-box{font-size:35px; font-family:'Bebas Neue'; color:var(--primary); margin:20px 0; padding:25px; border:2px dashed var(--border); border-radius:15px;}
   .impostor-text{color:var(--impostor); animation: pulse 1s infinite;}
   @keyframes pulse { 0%, 100% { transform:scale(1); } 50% { transform:scale(1.05); } }
-  .footer-hint{font-size:11px; color:var(--muted); margin-top:20px; font-style: italic;}
 </style>
 </head>
 <body>
@@ -57,7 +71,7 @@
       <div style="margin-top:15px;">
         <div class="cat-header">
             <p style="font-size:12px; color:var(--primary); font-weight: bold;">CATEGORÍAS:</p>
-            <button id="btnAll" onclick="selectAllCats()" style="background:none; border:1px solid var(--primary); color:var(--primary); padding:4px 8px; border-radius:6px; font-size:10px; cursor:pointer;">SELECCIONAR TODAS</button>
+            <button id="btnAll" onclick="selectAllCats()" style="background:var(--primary); border:none; color:white; padding:5px 10px; border-radius:6px; font-size:10px; cursor:pointer;">ACTIVAR TODAS</button>
         </div>
         <div class="cat-grid" id="catGrid">
           <div class="cat-item active" data-id="deportes" onclick="toggleCat('deportes')">Deportes</div>
@@ -200,10 +214,10 @@ window.startGame = async () => {
     let imps = [];
     const r = Math.random() * 100;
 
-    if (r < 2) imps = []; // 2% Ninguno
-    else if (r < 4) imps = [...players]; // 2% Todos
-    else if (r < 9) imps = [...players].sort(() => 0.5 - Math.random()).slice(0, 2); // 5% Dos
-    else imps = [players[Math.floor(Math.random() * players.length)]]; // Resto: 1
+    if (r < 2) imps = []; 
+    else if (r < 4) imps = [...players]; 
+    else if (r < 9) imps = [...players].sort(() => 0.5 - Math.random()).slice(0, 2); 
+    else imps = [players[Math.floor(Math.random() * players.length)]]; 
 
     await updateDoc(roomRef, { status: "playing", character: character, impostores: imps });
 };
