@@ -1,19 +1,9 @@
 <!DOCTYPE html>
 <html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <title>Inyector de Personajes - Firebase</title>
-    <style>
-        body { font-family: sans-serif; text-align: center; padding: 50px; background: #05050a; color: white; }
-        button { padding: 20px; font-size: 20px; cursor: pointer; background: #3b82f6; color: white; border: none; border-radius: 10px; }
-        #status { margin-top: 20px; color: #10b981; }
-    </style>
-</head>
-<body>
-
-    <h1>Inyector de Famosos</h1>
-    <p>Este script subirá 300 personajes a tu Firestore.</p>
-    <button onclick="subirDatos()">SUBIR LISTA A FIREBASE</button>
+<head><meta charset="UTF-8"><title>Inyector por Categorías</title></head>
+<body style="background:#05050a; color:white; text-align:center; padding:50px;">
+    <h1>Inyector de Categorías</h1>
+    <button id="btn" style="padding:20px; cursor:pointer;">SUBIR CATEGORÍAS</button>
     <div id="status"></div>
 
 <script type="module">
@@ -32,45 +22,39 @@
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
 
-    const personajes = [
-        // DEPORTES
-        "Lionel Messi", "Cristiano Ronaldo", "Luis Suárez", "Darwin Nuñez", "Fede Valverde", "Dibu Martínez", "Neymar Jr", "Mbappé", "Ronaldinho", "Zinedine Zidane", "Diego Maradona", "Pelé", "Rafa Nadal", "Roger Federer", "LeBron James", "Michael Jordan", "Tiger Woods", "Usain Bolt", "Serena Williams", "Lewis Hamilton", "Max Verstappen", "Mike Tyson", "Canelo Álvarez", "Edinson Cavani", "Diego Forlán", "Enzo Francescoli", "Josema Giménez", "Facundo Pellistri", "Arrascaeta", "Torreira",
-        // MÚSICA
-        "Bad Bunny", "Shakira", "Karol G", "Bizarrap", "Duki", "Rosalía", "Quevedo", "Rauw Alejandro", "Maluma", "J Balvin", "Daddy Yankee", "Don Omar", "Anuel AA", "Feid", "Taylor Swift", "Miley Cyrus", "Justin Bieber", "Harry Styles", "Dua Lipa", "Rihanna", "Beyoncé", "Lady Gaga", "Freddie Mercury", "Michael Jackson", "Kurt Cobain", "Elvis Presley", "Madonna", "Eminem", "Drake", "The Weeknd", "Bruno Mars", "Adele", "Billie Eilish", "Ed Sheeran", "Mick Jagger", "Lali Espósito", "Tini Stoessel", "Nicki Nicole", "Trueno", "Wos", "Tiago PZK", "Lit Killah",
-        // CINE
-        "Brad Pitt", "Leonardo DiCaprio", "Johnny Depp", "Tom Cruise", "Will Smith", "The Rock", "Vin Diesel", "Robert Downey Jr", "Scarlett Johansson", "Margot Robbie", "Jennifer Aniston", "Angelina Jolie", "Jackie Chan", "Bruce Lee", "Sylvester Stallone", "Arnold Schwarzenegger", "Keanu Reeves", "Morgan Freeman", "Al Pacino", "Robert De Niro", "Harrison Ford", "Meryl Streep", "Julia Roberts", "Tom Hanks", "Samuel L. Jackson", "Jim Carrey", "Adam Sandler", "Cillian Murphy", "Pedro Pascal", "Anya Taylor-Joy", "Ricardo Darín", "Guillermo Francella",
-        // FICTICIOS
-        "Spider-Man", "Batman", "Superman", "Iron Man", "Capitán América", "Wonder Woman", "Hulk", "Thor", "Flash", "Joker", "Harley Quinn", "Deadpool", "Wolverine", "Harry Potter", "Hermione Granger", "Voldemort", "Jack Sparrow", "Darth Vader", "Luke Skywalker", "Yoda", "Han Solo", "Sherlock Holmes", "James Bond", "Indiana Jones", "Lara Croft", "Barbie", "Ken", "Wednesday Addams", "Eleven", "Walter White", "Jesse Pinkman", "Tony Soprano", "Gandalf", "Frodo", "Goku", "Vegeta", "Naruto", "Luffy", "Pikachu", "Ash Ketchum", "Mario Bros", "Luigi", "Princess Peach", "Bowser", "Sonic", "Link", "Kratos",
-        // ANIMACIÓN
-        "Homero Simpson", "Bart Simpson", "Marge Simpson", "Lisa Simpson", "Ned Flanders", "Peter Griffin", "Eric Cartman", "Rick Sánchez", "Morty Smith", "Mickey Mouse", "Pato Donald", "Bugs Bunny", "Scooby-Doo", "Bob Esponja", "Patricio Estrella", "Shrek", "Burro", "Fiona", "Gato con Botas", "Simba", "Mufasa", "Buzz Lightyear", "Woody", "Rayo McQueen", "Stitch", "Po", "Gru", "Minions",
-        // REDES
-        "Ibai Llanos", "Auronplay", "MrBeast", "El Rubius", "TheGrefg", "JuanSGuarnizo", "Coscu", "Luquitas Rodriguez", "Hasbulla", "Khaby Lame", "Logan Paul", "Jake Paul", "PewDiePie", "Speed", "Kai Cenat", "Davoo Xeneize", "La Cobra", "Momo", "Bananasir",
-        // HISTORIA / POLÍTICA
-        "Donald Trump", "Joe Biden", "Vladimir Putin", "Papa Francisco", "Elon Musk", "Mark Zuckerberg", "Bill Gates", "Jeff Bezos", "Steve Jobs", "Albert Einstein", "Isaac Newton", "Charles Darwin", "Da Vinci", "Picasso", "Van Gogh", "Julio César", "Napoleón", "Nelson Mandela", "Martin Luther King", "Gandhi", "Che Guevara", "Fidel Castro", "José Artigas", "Pepe Mujica", "Lacalle Pou",
-        // VARIADOS
-        "Ronald McDonald", "Kim Kardashian", "Kylie Jenner", "Kanye West", "Oprah Winfrey", "Gordon Ramsay", "Simon Cowell", "Mr. Bean", "Don Francisco", "Marcelo Tinelli", "Mirtha Legrand", "Susana Giménez", "Ricardo Fort", "El Gigoló", "El Bananero", "Capusotto", "Micky Vainilla", "Bombita Rodríguez", "Dicky del Solar", "Kun Agüero", "Ángel Di María", "Zlatan Ibrahimovic", "Erling Haaland", "Tyson Fury", "Michael Phelps", "Valentino Rossi", "Simone Biles",
-"Dua Lipa", "Katy Perry", "Lana Del Rey", "Snoop Dogg", "Post Malone", "Axl Rose", "Gustavo Cerati", "Charly García", "Indio Solari",
-"Jared Leto", "Zendaya", "Tom Holland", "Benedict Cumberbatch", "Natalie Portman", "Emma Watson", "Ben Affleck", "Jason Momoa",
-"Thanos", "Black Panther", "Doctor Strange", "Catwoman", "Riddler", "Penguin", "Groot", "Rocket Raccoon", "Obi-Wan Kenobi",
-"Walter White", "Saul Goodman", "Thomas Shelby", "Ragnar Lothbrok", "Jon Snow", "Daenerys Targaryen", "Tyrion Lannister",
-"Pumba", "Timón", "Olaf", "Elsa", "Anna", "Wall-E", "Remy (Ratatouille)", "Mate (Cars)", "Mike Wazowski", "James P. Sullivan",
-"Ibai Llanos", "Spreen", "Quackity", "Westcol", "DjMaRiiO", "Ari Gameplays", "Rivers GG", "Robleis", "Papi Gavi",
-"Napoleón Bonaparte", "Cleopatra", "Juana de Arco", "Alexander Hamilton", "Abraham Lincoln", "Malala Yousafzai",
-"El Chavo del 8", "Don Ramón", "Quico", "La Chilindrina", "Profesor Jirafales", "Doña Florinda", "Señor Barriga",
-"Wally", "Popeye", "Olivia", "Gasparín", "La Pantera Rosa", "Pájaro Loco", "Garfield"
-    ];
+    const data = {
+      const data = {
+    deportes: [
+        "Lionel Messi", "Cristiano Ronaldo", "Luis Suárez", "Darwin Nuñez", "Fede Valverde", "Dibu Martínez", "Neymar Jr", "Mbappé", "Ronaldinho", "Zinedine Zidane", "Diego Maradona", "Pelé", "Rafa Nadal", "Roger Federer", "LeBron James", "Michael Jordan", "Tiger Woods", "Usain Bolt", "Serena Williams", "Lewis Hamilton", "Max Verstappen", "Mike Tyson", "Canelo Álvarez", "Edinson Cavani", "Diego Forlán", "Enzo Francescoli", "Josema Giménez", "Facundo Pellistri", "Arrascaeta", "Torreira", "Kun Agüero", "Ángel Di María", "Zlatan Ibrahimovic", "Erling Haaland", "Tyson Fury", "Michael Phelps", "Valentino Rossi", "Simone Biles"
+    ],
+    musica: [
+        "Bad Bunny", "Shakira", "Karol G", "Bizarrap", "Duki", "Rosalía", "Quevedo", "Rauw Alejandro", "Maluma", "J Balvin", "Daddy Yankee", "Don Omar", "Anuel AA", "Feid", "Taylor Swift", "Miley Cyrus", "Justin Bieber", "Harry Styles", "Dua Lipa", "Rihanna", "Beyoncé", "Lady Gaga", "Freddie Mercury", "Michael Jackson", "Kurt Cobain", "Elvis Presley", "Madonna", "Eminem", "Drake", "The Weeknd", "Bruno Mars", "Adele", "Billie Eilish", "Ed Sheeran", "Mick Jagger", "Lali Espósito", "Tini Stoessel", "Nicki Nicole", "Trueno", "Wos", "Tiago PZK", "Lit Killah", "Katy Perry", "Lana Del Rey", "Snoop Dogg", "Post Malone", "Axl Rose", "Gustavo Cerati", "Charly García", "Indio Solari", "Kanye West"
+    ],
+    cine: [
+        "Brad Pitt", "Leonardo DiCaprio", "Johnny Depp", "Tom Cruise", "Will Smith", "The Rock", "Vin Diesel", "Robert Downey Jr", "Scarlett Johansson", "Margot Robbie", "Jennifer Aniston", "Angelina Jolie", "Jackie Chan", "Bruce Lee", "Sylvester Stallone", "Arnold Schwarzenegger", "Keanu Reeves", "Morgan Freeman", "Al Pacino", "Robert De Niro", "Harrison Ford", "Meryl Streep", "Julia Roberts", "Tom Hanks", "Samuel L. Jackson", "Jim Carrey", "Adam Sandler", "Cillian Murphy", "Pedro Pascal", "Anya Taylor-Joy", "Ricardo Darín", "Guillermo Francella", "Jared Leto", "Zendaya", "Tom Holland", "Benedict Cumberbatch", "Natalie Portman", "Emma Watson", "Ben Affleck", "Jason Momoa"
+    ],
+    ficcion: [
+        "Spider-Man", "Batman", "Superman", "Iron Man", "Capitán América", "Wonder Woman", "Hulk", "Thor", "Flash", "Joker", "Harley Quinn", "Deadpool", "Wolverine", "Harry Potter", "Hermione Granger", "Voldemort", "Jack Sparrow", "Darth Vader", "Luke Skywalker", "Yoda", "Han Solo", "Sherlock Holmes", "James Bond", "Indiana Jones", "Lara Croft", "Barbie", "Ken", "Wednesday Addams", "Eleven", "Walter White", "Jesse Pinkman", "Tony Soprano", "Gandalf", "Frodo", "Goku", "Vegeta", "Naruto", "Luffy", "Pikachu", "Ash Ketchum", "Mario Bros", "Luigi", "Princess Peach", "Bowser", "Sonic", "Link", "Kratos", "Thanos", "Black Panther", "Doctor Strange", "Catwoman", "Riddler", "Penguin", "Groot", "Rocket Raccoon", "Obi-Wan Kenobi", "Saul Goodman", "Thomas Shelby", "Ragnar Lothbrok", "Jon Snow", "Daenerys Targaryen", "Tyrion Lannister"
+    ],
+    animacion: [
+        "Homero Simpson", "Bart Simpson", "Marge Simpson", "Lisa Simpson", "Ned Flanders", "Peter Griffin", "Eric Cartman", "Rick Sánchez", "Morty Smith", "Mickey Mouse", "Pato Donald", "Bugs Bunny", "Scooby-Doo", "Bob Esponja", "Patricio Estrella", "Shrek", "Burro", "Fiona", "Gato con Botas", "Simba", "Mufasa", "Buzz Lightyear", "Woody", "Rayo McQueen", "Stitch", "Po", "Gru", "Minions", "Pumba", "Timón", "Olaf", "Elsa", "Anna", "Wall-E", "Remy (Ratatouille)", "Mate (Cars)", "Mike Wazowski", "James P. Sullivan", "Popeye", "Olivia", "Gasparín", "La Pantera Rosa", "Pájaro Loco", "Garfield", "Wally"
+    ],
+    redes: [
+        "Ibai Llanos", "Auronplay", "MrBeast", "El Rubius", "TheGrefg", "JuanSGuarnizo", "Coscu", "Luquitas Rodriguez", "Hasbulla", "Khaby Lame", "Logan Paul", "Jake Paul", "PewDiePie", "Speed", "Kai Cenat", "Davoo Xeneize", "La Cobra", "Momo", "Bananasir", "Spreen", "Quackity", "Westcol", "DjMaRiiO", "Ari Gameplays", "Rivers GG", "Robleis", "Papi Gavi"
+    ],
+    historia_politica: [
+        "Donald Trump", "Joe Biden", "Vladimir Putin", "Papa Francisco", "Elon Musk", "Mark Zuckerberg", "Bill Gates", "Jeff Bezos", "Steve Jobs", "Albert Einstein", "Isaac Newton", "Charles Darwin", "Da Vinci", "Picasso", "Van Gogh", "Julio César", "Napoleón Bonaparte", "Nelson Mandela", "Martin Luther King", "Gandhi", "Che Guevara", "Fidel Castro", "José Artigas", "Pepe Mujica", "Lacalle Pou", "Cleopatra", "Juana de Arco", "Alexander Hamilton", "Abraham Lincoln", "Malala Yousafzai"
+    ],
+    variados: [
+        "Ronald McDonald", "Kim Kardashian", "Kylie Jenner", "Oprah Winfrey", "Gordon Ramsay", "Simon Cowell", "Mr. Bean", "Don Francisco", "Marcelo Tinelli", "Mirtha Legrand", "Susana Giménez", "Ricardo Fort", "El Gigoló", "El Bananero", "Capusotto", "Micky Vainilla", "Bombita Rodríguez", "Dicky del Solar", "El Chavo del 8", "Don Ramón", "Quico", "La Chilindrina", "Profesor Jirafales", "Doña Florinda", "Señor Barriga"
+    ]
+};
+    };
 
-    window.subirDatos = async () => {
+    document.getElementById('btn').onclick = async () => {
         document.getElementById('status').innerText = "Subiendo...";
-        try {
-            await setDoc(doc(db, "config", "listaPersonajes"), {
-                nombres: personajes
-            });
-            document.getElementById('status').innerText = "¡ÉXITO! 300 personajes subidos a Firestore.";
-        } catch (e) {
-            console.error(e);
-            document.getElementById('status').innerText = "Error: " + e.message;
-        }
+        await setDoc(doc(db, "config", "personajesV2"), data);
+        document.getElementById('status').innerText = "¡Listo! Categorías creadas.";
     };
 </script>
 </body>
