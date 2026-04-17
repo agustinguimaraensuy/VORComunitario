@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Inyector de Personajes - Firebase</title>
+    <style>
+        body { font-family: sans-serif; text-align: center; padding: 50px; background: #05050a; color: white; }
+        button { padding: 20px; font-size: 20px; cursor: pointer; background: #3b82f6; color: white; border: none; border-radius: 10px; }
+        #status { margin-top: 20px; color: #10b981; }
+    </style>
+</head>
+<body>
+
+    <h1>Inyector de Famosos</h1>
+    <p>Este script subirá 300 personajes a tu Firestore.</p>
+    <button onclick="subirDatos()">SUBIR LISTA A FIREBASE</button>
+    <div id="status"></div>
+
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+    import { getFirestore, doc, setDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+    const firebaseConfig = {
+        apiKey: "AIzaSyBgXAxWOmLok8XkReoJouYAQRcLZP_yrHg",
+        authDomain: "impostor-4f464.firebaseapp.com",
+        projectId: "impostor-4f464",
+        storageBucket: "impostor-4f464.firebasestorage.app",
+        messagingSenderId: "711021445541",
+        appId: "1:711021445541:web:7c819e87f6e413bfa2e84c"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    const personajes = [
+        // DEPORTES
+        "Lionel Messi", "Cristiano Ronaldo", "Luis Suárez", "Darwin Nuñez", "Fede Valverde", "Dibu Martínez", "Neymar Jr", "Mbappé", "Ronaldinho", "Zinedine Zidane", "Diego Maradona", "Pelé", "Rafa Nadal", "Roger Federer", "LeBron James", "Michael Jordan", "Tiger Woods", "Usain Bolt", "Serena Williams", "Lewis Hamilton", "Max Verstappen", "Mike Tyson", "Canelo Álvarez", "Edinson Cavani", "Diego Forlán", "Enzo Francescoli", "Josema Giménez", "Facundo Pellistri", "Arrascaeta", "Torreira",
+        // MÚSICA
+        "Bad Bunny", "Shakira", "Karol G", "Bizarrap", "Duki", "Rosalía", "Quevedo", "Rauw Alejandro", "Maluma", "J Balvin", "Daddy Yankee", "Don Omar", "Anuel AA", "Feid", "Taylor Swift", "Miley Cyrus", "Justin Bieber", "Harry Styles", "Dua Lipa", "Rihanna", "Beyoncé", "Lady Gaga", "Freddie Mercury", "Michael Jackson", "Kurt Cobain", "Elvis Presley", "Madonna", "Eminem", "Drake", "The Weeknd", "Bruno Mars", "Adele", "Billie Eilish", "Ed Sheeran", "Mick Jagger", "Lali Espósito", "Tini Stoessel", "Nicki Nicole", "Trueno", "Wos", "Tiago PZK", "Lit Killah",
+        // CINE
+        "Brad Pitt", "Leonardo DiCaprio", "Johnny Depp", "Tom Cruise", "Will Smith", "The Rock", "Vin Diesel", "Robert Downey Jr", "Scarlett Johansson", "Margot Robbie", "Jennifer Aniston", "Angelina Jolie", "Jackie Chan", "Bruce Lee", "Sylvester Stallone", "Arnold Schwarzenegger", "Keanu Reeves", "Morgan Freeman", "Al Pacino", "Robert De Niro", "Harrison Ford", "Meryl Streep", "Julia Roberts", "Tom Hanks", "Samuel L. Jackson", "Jim Carrey", "Adam Sandler", "Cillian Murphy", "Pedro Pascal", "Anya Taylor-Joy", "Ricardo Darín", "Guillermo Francella",
+        // FICTICIOS
+        "Spider-Man", "Batman", "Superman", "Iron Man", "Capitán América", "Wonder Woman", "Hulk", "Thor", "Flash", "Joker", "Harley Quinn", "Deadpool", "Wolverine", "Harry Potter", "Hermione Granger", "Voldemort", "Jack Sparrow", "Darth Vader", "Luke Skywalker", "Yoda", "Han Solo", "Sherlock Holmes", "James Bond", "Indiana Jones", "Lara Croft", "Barbie", "Ken", "Wednesday Addams", "Eleven", "Walter White", "Jesse Pinkman", "Tony Soprano", "Gandalf", "Frodo", "Goku", "Vegeta", "Naruto", "Luffy", "Pikachu", "Ash Ketchum", "Mario Bros", "Luigi", "Princess Peach", "Bowser", "Sonic", "Link", "Kratos",
+        // ANIMACIÓN
+        "Homero Simpson", "Bart Simpson", "Marge Simpson", "Lisa Simpson", "Ned Flanders", "Peter Griffin", "Eric Cartman", "Rick Sánchez", "Morty Smith", "Mickey Mouse", "Pato Donald", "Bugs Bunny", "Scooby-Doo", "Bob Esponja", "Patricio Estrella", "Shrek", "Burro", "Fiona", "Gato con Botas", "Simba", "Mufasa", "Buzz Lightyear", "Woody", "Rayo McQueen", "Stitch", "Po", "Gru", "Minions",
+        // REDES
+        "Ibai Llanos", "Auronplay", "MrBeast", "El Rubius", "TheGrefg", "JuanSGuarnizo", "Coscu", "Luquitas Rodriguez", "Hasbulla", "Khaby Lame", "Logan Paul", "Jake Paul", "PewDiePie", "Speed", "Kai Cenat", "Davoo Xeneize", "La Cobra", "Momo", "Bananasir",
+        // HISTORIA / POLÍTICA
+        "Donald Trump", "Joe Biden", "Vladimir Putin", "Papa Francisco", "Elon Musk", "Mark Zuckerberg", "Bill Gates", "Jeff Bezos", "Steve Jobs", "Albert Einstein", "Isaac Newton", "Charles Darwin", "Da Vinci", "Picasso", "Van Gogh", "Julio César", "Napoleón", "Nelson Mandela", "Martin Luther King", "Gandhi", "Che Guevara", "Fidel Castro", "José Artigas", "Pepe Mujica", "Lacalle Pou",
+        // VARIADOS
+        "Ronald McDonald", "Kim Kardashian", "Kylie Jenner", "Kanye West", "Oprah Winfrey", "Gordon Ramsay", "Simon Cowell", "Mr. Bean", "Don Francisco", "Marcelo Tinelli", "Mirtha Legrand", "Susana Giménez", "Ricardo Fort", "El Gigoló", "El Bananero", "Capusotto", "Micky Vainilla", "Bombita Rodríguez", "Dicky del Solar"
+    ];
+
+    window.subirDatos = async () => {
+        document.getElementById('status').innerText = "Subiendo...";
+        try {
+            await setDoc(doc(db, "config", "listaPersonajes"), {
+                nombres: personajes
+            });
+            document.getElementById('status').innerText = "¡ÉXITO! 300 personajes subidos a Firestore.";
+        } catch (e) {
+            console.error(e);
+            document.getElementById('status').innerText = "Error: " + e.message;
+        }
+    };
+</script>
+</body>
+</html>
