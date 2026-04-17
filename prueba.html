@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-<title>EL IMPOSTOR</title>
+<title>EL IMPOSTOR - SALTO</title>
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
 <style>
   :root { --bg:#05050a; --surface:#0f0a14; --border:#2d1b3d; --primary:#3b82f6; --impostor:#ef4444; --text:#fce7f3; --muted:#6b7280; }
@@ -18,18 +18,20 @@
   .btn-primary{background:var(--primary);color:white;}
   .btn-outline{background:transparent;border:2px solid var(--primary);color:var(--primary);}
   .btn-start{background:var(--impostor);color:white;margin-top:25px;}
-  .player-list{margin-top:20px;text-align:left; background:rgba(0,0,0,0.3); border-radius:15px; padding:10px;}
-  .player-item{padding:12px;border-bottom:1px solid rgba(255,255,255,0.05);display:flex;justify-content:space-between;}
-  #gameScreen, #lobbyScreen{display:none;}
-  .secret-box{font-size:38px;font-family:'Bebas Neue';color:var(--primary);margin:25px 0;padding:30px;border:2px dashed var(--border);border-radius:15px;}
-  .impostor-text{color:var(--impostor);animation: pulse 1s infinite;}
-  @keyframes pulse { 0%, 100% { transform:scale(1); } 50% { transform:scale(1.05); } }
   
-  /* Estilo para selector de categorías */
-  .cat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 20px 0; }
-  .cat-item { padding: 10px; border: 1px solid var(--border); border-radius: 10px; font-size: 14px; cursor: pointer; }
-  .cat-item.active { background: var(--primary); border-color: var(--primary); color: white; }
-  .cat-item.disabled { opacity: 0.6; cursor: not-allowed; }
+  .cat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin: 15px 0; }
+  .cat-item { padding: 12px; border: 1px solid var(--border); border-radius: 12px; font-size: 13px; cursor: pointer; transition: 0.2s; color: var(--muted); }
+  .cat-item.active { background: var(--primary); border-color: var(--primary); color: white; font-weight: bold; }
+  .cat-item.disabled { opacity: 0.7; cursor: default; }
+
+  .player-list{margin-top:20px;text-align:left; background:rgba(0,0,0,0.3); border-radius:15px; padding:10px;}
+  .player-item{padding:10px; border-bottom:1px solid rgba(255,255,255,0.05); display:flex; justify-content:space-between; font-size: 14px;}
+  
+  #gameScreen, #lobbyScreen{display:none;}
+  .secret-box{font-size:35px; font-family:'Bebas Neue'; color:var(--primary); margin:20px 0; padding:25px; border:2px dashed var(--border); border-radius:15px;}
+  .impostor-text{color:var(--impostor); animation: pulse 1s infinite;}
+  @keyframes pulse { 0%, 100% { transform:scale(1); } 50% { transform:scale(1.05); } }
+  .footer-hint{font-size:11px; color:var(--muted); margin-top:20px; font-style: italic;}
 </style>
 </head>
 <body>
@@ -48,33 +50,43 @@
 
   <div id="lobbyScreen">
     <div class="card">
-      <p style="color:var(--muted); font-size:12px;">CÓDIGO DE SALA:</p>
-      <h2 id="displayCode" style="font-size:50px; font-family:'Bebas Neue';">----</h2>
+      <p style="color:var(--muted); font-size:11px;">CÓDIGO DE SALA:</p>
+      <h2 id="displayCode" style="font-size:45px; font-family:'Bebas Neue';">----</h2>
       
-      <div id="categorySection" style="margin-top:20px;">
-        <p style="font-size:12px; color:var(--muted)">CATEGORÍAS SELECCIONADAS:</p>
+      <div style="margin-top:15px;">
+        <p style="font-size:12px; color:var(--primary); font-weight: bold;">SELECCIONÁ CATEGORÍAS (PODÉS VARIAS):</p>
         <div class="cat-grid" id="catGrid">
-          <div class="cat-item active" data-cat="deportes" onclick="toggleCat(this)">Deportistas</div>
-          <div class="cat-item active" data-cat="musica" onclick="toggleCat(this)">Cantantes</div>
-          <div class="cat-item active" data-cat="ficcion" onclick="toggleCat(this)">Ficción</div>
-          <div class="cat-item active" data-cat="animacion" onclick="toggleCat(this)">Dibujos</div>
+          <div class="cat-item active" data-id="deportes" onclick="toggleCat('deportes')">Deportes</div>
+          <div class="cat-item active" data-id="musica" onclick="toggleCat('musica')">Música</div>
+          <div class="cat-item active" data-id="cine" onclick="toggleCat('cine')">Cine</div>
+          <div class="cat-item active" data-id="ficcion" onclick="toggleCat('ficcion')">Ficción</div>
+          <div class="cat-item active" data-id="animacion" onclick="toggleCat('animacion')">Animación</div>
+          <div class="cat-item active" data-id="redes" onclick="toggleCat('redes')">Redes/Streamers</div>
+          <div class="cat-item active" data-id="historia_politica" onclick="toggleCat('historia_politica')">Historia</div>
+          <div class="cat-item active" data-id="variados" onclick="toggleCat('variados')">Variados</div>
         </div>
       </div>
 
       <div class="player-list" id="playerList"></div>
       <div id="hostControls" style="display:none;"><button class="btn btn-start" onclick="startGame()">INICIAR PARTIDA</button></div>
-      <div id="waitMsg" style="margin-top:20px; color:var(--muted);">Esperando que el Host inicie...</div>
+      <div id="waitMsg" style="margin-top:15px; color:var(--muted); font-size:13px;">Esperando que el Host inicie...</div>
     </div>
   </div>
 
   <div id="gameScreen">
     <div class="card">
-        <p style="font-size:13px;">TU PERSONAJE SECRETO:</p>
+        <p style="font-size:12px; color:var(--muted);">TU PERSONAJE:</p>
         <div id="secretRole" class="secret-box">...</div>
-        <div id="gameInstruction" style="font-size:15px; color:var(--muted); margin-bottom: 20px;"></div>
-        <div id="replayControl" style="display:none;"><button class="btn btn-primary" onclick="startGame()">JUGAR OTRA VEZ</button></div>
-        <button class="btn" onclick="location.reload()" style="background:none; color:var(--muted); font-size:14px;">SALIR</button>
-        <p style="font-size:11px; color:var(--muted); margin-top:25px; font-style: italic;">¿Estás listo? ¡Puede haber 1, 2, todos o ninguno!</p>
+        <div id="gameInstruction" style="font-size:14px; color:var(--text); margin-bottom:15px;"></div>
+        
+        <div id="replayControl" style="display:none;">
+            <p style="font-size:11px; color:var(--primary); margin-bottom:5px;">PODÉS CAMBIAR CATEGORÍAS ANTES DE REINICIAR</p>
+            <button class="btn btn-primary" onclick="backToLobby()">CAMBIAR REGLAS / CATEGORÍAS</button>
+            <button class="btn btn-outline" style="margin-top:10px;" onclick="startGame()">JUGAR OTRA VEZ</button>
+        </div>
+
+        <button class="btn" onclick="location.reload()" style="background:none; color:var(--muted); font-size:13px;">SALIR AL MENÚ</button>
+        <p class="footer-hint">¿Estás listo para encontrar al impostor? <br> ¡Puede haber uno, dos, todos o ninguno!</p>
     </div>
   </div>
 </div>
@@ -94,42 +106,34 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
-let currentRoomId = null, myName = "", isHost = false;
-let selectedCats = ["deportes", "musica", "ficcion", "animacion"];
-
-window.toggleCat = async (el) => {
-    if(!isHost) return;
-    const cat = el.dataset.cat;
-    if(selectedCats.includes(cat)) {
-        if(selectedCats.length === 1) return;
-        selectedCats = selectedCats.filter(c => c !== cat);
-    } else {
-        selectedCats.push(cat);
-    }
-    await updateDoc(doc(db, "rooms", currentRoomId), { categories: selectedCats });
-};
+let currentRoomId = null, myName = "", isHost = false, selectedCats = ["deportes", "musica", "cine", "ficcion", "animacion", "redes", "historia_politica", "variados"];
 
 window.createRoom = async () => {
     myName = document.getElementById('playerName').value.trim();
-    if(!myName) return alert("Nombre!");
+    if(!myName) return alert("Poné tu nombre");
     currentRoomId = Math.floor(1000 + Math.random() * 9000).toString();
     isHost = true;
-    await setDoc(doc(db, "rooms", currentRoomId), { 
-        status: "waiting", 
-        players: [myName], 
-        host: myName, 
-        categories: selectedCats,
-        impostores: [] 
-    });
+    await setDoc(doc(db, "rooms", currentRoomId), { status: "waiting", players: [myName], host: myName, character: "", categories: selectedCats, impostores: [] });
     showLobby();
 };
 
 window.joinRoom = async () => {
     myName = document.getElementById('playerName').value.trim();
     currentRoomId = document.getElementById('roomCodeInput').value.toString().trim();
+    if(!myName || !currentRoomId) return alert("Faltan datos");
     const roomRef = doc(db, "rooms", currentRoomId);
     const snap = await getDoc(roomRef);
-    if(snap.exists()) { await updateDoc(roomRef, { players: arrayUnion(myName) }); showLobby(); }
+    if(snap.exists()) { await updateDoc(roomRef, { players: arrayUnion(myName) }); isHost = false; showLobby(); }
+};
+
+window.toggleCat = async (catId) => {
+    if(!isHost) return;
+    if(selectedCats.includes(catId)) {
+        if(selectedCats.length > 1) selectedCats = selectedCats.filter(c => c !== catId);
+    } else {
+        selectedCats.push(catId);
+    }
+    await updateDoc(doc(db, "rooms", currentRoomId), { categories: selectedCats });
 };
 
 function showLobby() {
@@ -140,22 +144,24 @@ function showLobby() {
     onSnapshot(doc(db, "rooms", currentRoomId), (snap) => {
         const data = snap.data();
         if(!data) return;
+        selectedCats = data.categories || [];
         
-        // Actualizar visual de categorías
-        selectedCats = data.categories;
-        document.querySelectorAll('.cat-item').forEach(item => {
-            item.classList.toggle('active', selectedCats.includes(item.dataset.cat));
-            if(!isHost) item.classList.add('disabled');
+        // UI de categorías
+        document.querySelectorAll('.cat-item').forEach(el => {
+            el.classList.toggle('active', selectedCats.includes(el.dataset.id));
+            if(!isHost) el.classList.add('disabled');
         });
 
-        document.getElementById('playerList').innerHTML = data.players.map(p => `<div class="player-item"><span>${p}</span><span>${p === data.host ? '👑' : ''}</span></div>`).join('');
-        
+        document.getElementById('playerList').innerHTML = data.players.map(p => `
+            <div class="player-item"><span>${p}</span><span>${p === data.host ? '👑' : ''}</span></div>
+        `).join('');
+
         if(isHost) {
             document.getElementById('hostControls').style.display = 'block';
             document.getElementById('waitMsg').style.display = 'none';
             document.getElementById('replayControl').style.display = 'block';
         }
-        
+
         if(data.status === "playing") renderGame(data);
         else if(data.status === "waiting") {
             document.getElementById('gameScreen').style.display = 'none';
@@ -164,20 +170,23 @@ function showLobby() {
     });
 }
 
+window.backToLobby = async () => {
+    await updateDoc(doc(db, "rooms", currentRoomId), { status: "waiting" });
+};
+
 window.startGame = async () => {
     const roomRef = doc(db, "rooms", currentRoomId);
-    const roomSnap = await getDoc(roomRef);
-    const players = roomSnap.data().players;
-    if(players.length < 3) return alert("Mínimo 3!");
+    const snap = await getDoc(roomRef);
+    const players = snap.data().players;
+    if(players.length < 3) return alert("Mínimo 3 jugadores");
 
-    // Obtener personajes de las categorías elegidas
     const configSnap = await getDoc(doc(db, "config", "personajesV2"));
     const configData = configSnap.data();
     let pool = [];
-    selectedCats.forEach(cat => pool = pool.concat(configData[cat]));
-    
-    const char = pool[Math.floor(Math.random() * pool.length)];
-    let imps = []; 
+    selectedCats.forEach(c => { if(configData[c]) pool = pool.concat(configData[c]); });
+
+    const character = pool[Math.floor(Math.random() * pool.length)];
+    let imps = [];
     const r = Math.random() * 100;
 
     if (r < 2) imps = []; // 2% Ninguno
@@ -185,19 +194,23 @@ window.startGame = async () => {
     else if (r < 9) imps = [...players].sort(() => 0.5 - Math.random()).slice(0, 2); // 5% Dos
     else imps = [players[Math.floor(Math.random() * players.length)]]; // Resto: 1
 
-    await updateDoc(roomRef, { status: "playing", character: char, impostores: imps });
+    await updateDoc(roomRef, { status: "playing", character: character, impostores: imps });
 };
 
 function renderGame(data) {
     document.getElementById('lobbyScreen').style.display = 'none';
     document.getElementById('gameScreen').style.display = 'block';
     const roleDiv = document.getElementById('secretRole');
+    const instruction = document.getElementById('gameInstruction');
+
     if(data.impostores.includes(myName)) {
-        roleDiv.innerText = "¡IMPOSTOR!"; roleDiv.className = 'secret-box impostor-text';
-        document.getElementById('gameInstruction').innerText = "No sabés el personaje. ¡Mentí!";
+        roleDiv.innerText = "¡IMPOSTOR!";
+        roleDiv.className = 'secret-box impostor-text';
+        instruction.innerHTML = "No sabés quién es el famoso.<br>¡Mentí para que no te descubran!";
     } else {
-        roleDiv.innerText = data.character; roleDiv.className = 'secret-box';
-        document.getElementById('gameInstruction').innerHTML = `El personaje es: <b>${data.character}</b>`;
+        roleDiv.innerText = data.character;
+        roleDiv.className = 'secret-box';
+        instruction.innerHTML = "El personaje es <b>" + data.character + "</b>.<br>Buscá quién está fingiendo.";
     }
 }
 </script>
