@@ -3,56 +3,44 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-<title>EL IMPOSTOR - JUEGO DE SALA</title>
+<title>EL IMPOSTOR</title>
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
 <style>
-  :root {
-    --bg:#05050a; --surface:#0f0a14; --border:#2d1b3d;
-    --primary:#3b82f6; --impostor:#ef4444; --text:#fce7f3; --muted:#6b7280;
-  }
+  :root { --bg:#05050a; --surface:#0f0a14; --border:#2d1b3d; --primary:#3b82f6; --impostor:#ef4444; --text:#fce7f3; --muted:#6b7280; }
   *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
-  body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min-height:100vh;
-    background-image: radial-gradient(circle at 50% -20%, #1e3a8a 0%, transparent 50%); overflow-x:hidden;}
+  body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min-height:100vh;background-image: radial-gradient(circle at 50% -20%, #1e3a8a 0%, transparent 50%);}
   .wrap{max-width:500px;margin:0 auto;padding:20px;}
-  
   header{text-align:center;padding:30px 0 10px;}
-  .logo{font-family:'Bebas Neue';font-size:60px;letter-spacing:2px;color:var(--primary);text-shadow: 0 0 20px rgba(59,130,246,0.5);}
-
-  .card{background:var(--surface);border:1px solid var(--border);border-radius:24px;padding:30px;margin-top:20px;text-align:center;box-shadow: 0 10px 30px rgba(0,0,0,0.5);}
-  input{width:100%;padding:18px;background:#000;border:1px solid var(--border);border-radius:14px;color:#fff;margin:12px 0;text-align:center;font-size:18px;outline:none;}
-  input:focus{border-color:var(--primary);}
-  
-  .btn{width:100%;padding:18px;border:none;border-radius:14px;font-family:'Bebas Neue';font-size:22px;cursor:pointer;margin-top:12px;transition:0.2s;letter-spacing:1px;}
+  .logo{font-family:'Bebas Neue';font-size:60px;color:var(--primary);text-shadow: 0 0 20px rgba(59,130,246,0.5);}
+  .card{background:var(--surface);border:1px solid var(--border);border-radius:24px;padding:30px;margin-top:20px;text-align:center;}
+  input{width:100%;padding:18px;background:#000;border:1px solid var(--border);border-radius:14px;color:#fff;margin:12px 0;text-align:center;font-size:18px;}
+  .btn{width:100%;padding:18px;border:none;border-radius:14px;font-family:'Bebas Neue';font-size:22px;cursor:pointer;margin-top:12px;transition:0.2s;}
   .btn-primary{background:var(--primary);color:white;}
   .btn-outline{background:transparent;border:2px solid var(--primary);color:var(--primary);}
   .btn-start{background:var(--impostor);color:white;margin-top:25px;}
-  .btn:active{transform:scale(0.96);}
-
   .player-list{margin-top:20px;text-align:left; background:rgba(0,0,0,0.3); border-radius:15px; padding:10px;}
-  .player-item{padding:12px;border-bottom:1px solid rgba(255,255,255,0.05);display:flex;justify-content:space-between; font-weight:500;}
-  .player-item:last-child{border:none;}
-
+  .player-item{padding:12px;border-bottom:1px solid rgba(255,255,255,0.05);display:flex;justify-content:space-between;}
   #gameScreen, #lobbyScreen{display:none;}
-  .secret-box{font-size:38px;font-family:'Bebas Neue';color:var(--primary);margin:25px 0;padding:30px;border:2px dashed var(--border);border-radius:15px;background:rgba(255,255,255,0.02);}
+  .secret-box{font-size:38px;font-family:'Bebas Neue';color:var(--primary);margin:25px 0;padding:30px;border:2px dashed var(--border);border-radius:15px;}
   .impostor-text{color:var(--impostor);animation: pulse 1s infinite;}
-  @keyframes pulse { 0% { transform:scale(1); } 50% { transform:scale(1.05); } 100% { transform:scale(1); } }
+  @keyframes pulse { 0%, 100% { transform:scale(1); } 50% { transform:scale(1.05); } }
   
-  .instruction-card{font-size:15px; color:var(--muted); line-height:1.5; margin-top:15px;}
-  .footer-hint{font-size:11px; color:var(--muted); margin-top:20px; font-style: italic;}
+  /* Estilo para selector de categorías */
+  .cat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 20px 0; }
+  .cat-item { padding: 10px; border: 1px solid var(--border); border-radius: 10px; font-size: 14px; cursor: pointer; }
+  .cat-item.active { background: var(--primary); border-color: var(--primary); color: white; }
+  .cat-item.disabled { opacity: 0.6; cursor: not-allowed; }
 </style>
 </head>
 <body>
 
 <div class="wrap">
-  <header>
-    <div class="logo">EL IMPOSTOR</div>
-  </header>
+  <header><div class="logo">EL IMPOSTOR</div></header>
 
   <div id="setupScreen">
     <div class="card">
       <input type="text" id="playerName" placeholder="Tu Apodo">
       <button class="btn btn-primary" onclick="createRoom()">CREAR SALA NUEVA</button>
-      <div style="margin:20px 0; color:var(--border); font-size:12px; letter-spacing:2px;">O UNITE A UNA</div>
       <input type="number" id="roomCodeInput" placeholder="Código de 4 dígitos">
       <button class="btn btn-outline" onclick="joinRoom()">ENTRAR A LA SALA</button>
     </div>
@@ -60,29 +48,33 @@
 
   <div id="lobbyScreen">
     <div class="card">
-      <p style="color:var(--muted); font-size:12px; letter-spacing:2px;">CÓDIGO DE SALA:</p>
-      <h2 id="displayCode" style="font-size:50px; font-family:'Bebas Neue'; color:#fff; margin:10px 0;">----</h2>
-      <div class="player-list" id="playerList"></div>
-      <div id="hostControls" style="display:none;">
-        <button class="btn btn-start" onclick="startGame()">INICIAR PARTIDA</button>
+      <p style="color:var(--muted); font-size:12px;">CÓDIGO DE SALA:</p>
+      <h2 id="displayCode" style="font-size:50px; font-family:'Bebas Neue';">----</h2>
+      
+      <div id="categorySection" style="margin-top:20px;">
+        <p style="font-size:12px; color:var(--muted)">CATEGORÍAS SELECCIONADAS:</p>
+        <div class="cat-grid" id="catGrid">
+          <div class="cat-item active" data-cat="deportes" onclick="toggleCat(this)">Deportistas</div>
+          <div class="cat-item active" data-cat="musica" onclick="toggleCat(this)">Cantantes</div>
+          <div class="cat-item active" data-cat="ficcion" onclick="toggleCat(this)">Ficción</div>
+          <div class="cat-item active" data-cat="animacion" onclick="toggleCat(this)">Dibujos</div>
+        </div>
       </div>
-      <div id="waitMsg" style="margin-top:20px; color:var(--muted); font-size:14px;">Esperando que el Host inicie...</div>
+
+      <div class="player-list" id="playerList"></div>
+      <div id="hostControls" style="display:none;"><button class="btn btn-start" onclick="startGame()">INICIAR PARTIDA</button></div>
+      <div id="waitMsg" style="margin-top:20px; color:var(--muted);">Esperando que el Host inicie...</div>
     </div>
   </div>
 
   <div id="gameScreen">
     <div class="card">
-        <p style="letter-spacing:1px; font-size:13px;">TU PERSONAJE SECRETO:</p>
+        <p style="font-size:13px;">TU PERSONAJE SECRETO:</p>
         <div id="secretRole" class="secret-box">...</div>
-        <div class="instruction-card" id="gameInstruction"></div>
-        
-        <div id="replayControl" style="display:none;">
-            <button class="btn btn-primary" onclick="startGame()">JUGAR OTRA VEZ</button>
-        </div>
-
-        <button class="btn" onclick="location.reload()" style="background:none; color:var(--muted); font-size:14px; margin-top:10px;">SALIR AL MENÚ</button>
-        
-        <p class="footer-hint">¿Estás listo para encontrar al impostor? <br> ¡Puede haber uno, dos, todos o ninguno!</p>
+        <div id="gameInstruction" style="font-size:15px; color:var(--muted); margin-bottom: 20px;"></div>
+        <div id="replayControl" style="display:none;"><button class="btn btn-primary" onclick="startGame()">JUGAR OTRA VEZ</button></div>
+        <button class="btn" onclick="location.reload()" style="background:none; color:var(--muted); font-size:14px;">SALIR</button>
+        <p style="font-size:11px; color:var(--muted); margin-top:25px; font-style: italic;">¿Estás listo? ¡Puede haber 1, 2, todos o ninguno!</p>
     </div>
   </div>
 </div>
@@ -94,7 +86,6 @@ import { getFirestore, doc, setDoc, onSnapshot, updateDoc, arrayUnion, getDoc } 
 const firebaseConfig = {
   apiKey: "AIzaSyBgXAxWOmLok8XkReoJouYAQRcLZP_yrHg",
   authDomain: "impostor-4f464.firebaseapp.com",
-  databaseURL: "https://impostor-4f464-default-rtdb.firebaseio.com",
   projectId: "impostor-4f464",
   storageBucket: "impostor-4f464.firebasestorage.app",
   messagingSenderId: "711021445541",
@@ -103,63 +94,68 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
+let currentRoomId = null, myName = "", isHost = false;
+let selectedCats = ["deportes", "musica", "ficcion", "animacion"];
 
-let currentRoomId = null;
-let myName = "";
-let isHost = false;
-
-const personajes = ["Lionel Messi", "Cristiano Ronaldo", "Luis Suárez", "Dibu Martínez", "Darwin Nuñez", "Mbappé", "Shakira", "Bad Bunny", "Karol G", "Bizarrap", "Duki", "Taylor Swift", "Miley Cyrus", "Elon Musk", "Donald Trump", "Ibai Llanos", "Auronplay", "MrBeast", "Batman", "Spider-Man", "Homero Simpson", "Shrek", "Mickey Mouse", "Maradona", "Artigas"];
+window.toggleCat = async (el) => {
+    if(!isHost) return;
+    const cat = el.dataset.cat;
+    if(selectedCats.includes(cat)) {
+        if(selectedCats.length === 1) return;
+        selectedCats = selectedCats.filter(c => c !== cat);
+    } else {
+        selectedCats.push(cat);
+    }
+    await updateDoc(doc(db, "rooms", currentRoomId), { categories: selectedCats });
+};
 
 window.createRoom = async () => {
-    try {
-        myName = document.getElementById('playerName').value.trim();
-        if(!myName) return alert("Poné tu nombre");
-        currentRoomId = Math.floor(1000 + Math.random() * 9000).toString();
-        isHost = true;
-        await setDoc(doc(db, "rooms", currentRoomId), {
-            status: "waiting",
-            players: [myName],
-            host: myName,
-            character: "",
-            impostores: []
-        });
-        showLobby();
-    } catch (e) { alert("Error: Revisá las Reglas en Firebase."); }
+    myName = document.getElementById('playerName').value.trim();
+    if(!myName) return alert("Nombre!");
+    currentRoomId = Math.floor(1000 + Math.random() * 9000).toString();
+    isHost = true;
+    await setDoc(doc(db, "rooms", currentRoomId), { 
+        status: "waiting", 
+        players: [myName], 
+        host: myName, 
+        categories: selectedCats,
+        impostores: [] 
+    });
+    showLobby();
 };
 
 window.joinRoom = async () => {
     myName = document.getElementById('playerName').value.trim();
     currentRoomId = document.getElementById('roomCodeInput').value.toString().trim();
-    if(!myName || !currentRoomId) return alert("Faltan datos");
     const roomRef = doc(db, "rooms", currentRoomId);
-    try {
-        const snap = await getDoc(roomRef);
-        if(snap.exists()) {
-            await updateDoc(roomRef, { players: arrayUnion(myName) });
-            showLobby();
-        } else { alert("La sala no existe."); }
-    } catch (e) { alert("Error al entrar."); }
+    const snap = await getDoc(roomRef);
+    if(snap.exists()) { await updateDoc(roomRef, { players: arrayUnion(myName) }); showLobby(); }
 };
 
 function showLobby() {
     document.getElementById('setupScreen').style.display = 'none';
     document.getElementById('lobbyScreen').style.display = 'block';
     document.getElementById('displayCode').innerText = currentRoomId;
-    if(isHost) {
-        document.getElementById('hostControls').style.display = 'block';
-        document.getElementById('waitMsg').style.display = 'none';
-        document.getElementById('replayControl').style.display = 'block';
-    }
+    
     onSnapshot(doc(db, "rooms", currentRoomId), (snap) => {
         const data = snap.data();
         if(!data) return;
-        const list = document.getElementById('playerList');
-        list.innerHTML = data.players.map(p => `
-            <div class="player-item">
-                <span>${p}</span>
-                <span style="font-size:12px; color:var(--primary)">${p === data.host ? '👑 HOST' : 'LISTO'}</span>
-            </div>
-        `).join('');
+        
+        // Actualizar visual de categorías
+        selectedCats = data.categories;
+        document.querySelectorAll('.cat-item').forEach(item => {
+            item.classList.toggle('active', selectedCats.includes(item.dataset.cat));
+            if(!isHost) item.classList.add('disabled');
+        });
+
+        document.getElementById('playerList').innerHTML = data.players.map(p => `<div class="player-item"><span>${p}</span><span>${p === data.host ? '👑' : ''}</span></div>`).join('');
+        
+        if(isHost) {
+            document.getElementById('hostControls').style.display = 'block';
+            document.getElementById('waitMsg').style.display = 'none';
+            document.getElementById('replayControl').style.display = 'block';
+        }
+        
         if(data.status === "playing") renderGame(data);
         else if(data.status === "waiting") {
             document.getElementById('gameScreen').style.display = 'none';
@@ -170,48 +166,38 @@ function showLobby() {
 
 window.startGame = async () => {
     const roomRef = doc(db, "rooms", currentRoomId);
-    const snap = await getDoc(roomRef);
-    const players = snap.data().players;
-    if(players.length < 3) return alert("Mínimo 3 jugadores");
+    const roomSnap = await getDoc(roomRef);
+    const players = roomSnap.data().players;
+    if(players.length < 3) return alert("Mínimo 3!");
 
-    const character = personajes[Math.floor(Math.random() * personajes.length)];
-    let impostores = [];
+    // Obtener personajes de las categorías elegidas
+    const configSnap = await getDoc(doc(db, "config", "personajesV2"));
+    const configData = configSnap.data();
+    let pool = [];
+    selectedCats.forEach(cat => pool = pool.concat(configData[cat]));
+    
+    const char = pool[Math.floor(Math.random() * pool.length)];
+    let imps = []; 
     const r = Math.random() * 100;
 
-    if (r < 5) { // 5% Ninguno
-        impostores = [];
-    } else if (r < 15) { // 10% Todos (5+10)
-        impostores = [...players];
-    } else if (r < 35) { // 20% Dos (15+20)
-        let shuffled = [...players].sort(() => 0.5 - Math.random());
-        impostores = [shuffled[0], shuffled[1]];
-    } else { // Resto: Uno solo
-        impostores = [players[Math.floor(Math.random() * players.length)]];
-    }
+    if (r < 2) imps = []; // 2% Ninguno
+    else if (r < 4) imps = [...players]; // 2% Todos
+    else if (r < 9) imps = [...players].sort(() => 0.5 - Math.random()).slice(0, 2); // 5% Dos
+    else imps = [players[Math.floor(Math.random() * players.length)]]; // Resto: 1
 
-    await updateDoc(roomRef, {
-        status: "playing",
-        character: character,
-        impostores: impostores
-    });
+    await updateDoc(roomRef, { status: "playing", character: char, impostores: imps });
 };
 
 function renderGame(data) {
     document.getElementById('lobbyScreen').style.display = 'none';
     document.getElementById('gameScreen').style.display = 'block';
     const roleDiv = document.getElementById('secretRole');
-    const instruction = document.getElementById('gameInstruction');
-
     if(data.impostores.includes(myName)) {
-        roleDiv.innerText = "¡SOS EL IMPOSTOR!";
-        roleDiv.classList.add('impostor-text');
-        roleDiv.style.color = "var(--impostor)";
-        instruction.innerHTML = "No sabés quién es el famoso. <br> ¡Mentí para que no te descubran!";
+        roleDiv.innerText = "¡IMPOSTOR!"; roleDiv.className = 'secret-box impostor-text';
+        document.getElementById('gameInstruction').innerText = "No sabés el personaje. ¡Mentí!";
     } else {
-        roleDiv.innerText = data.character;
-        roleDiv.classList.remove('impostor-text');
-        roleDiv.style.color = "var(--primary)";
-        instruction.innerHTML = "El personaje es <b>" + data.character + "</b>. <br> Buscá quién está fingiendo.";
+        roleDiv.innerText = data.character; roleDiv.className = 'secret-box';
+        document.getElementById('gameInstruction').innerHTML = `El personaje es: <b>${data.character}</b>`;
     }
 }
 </script>
