@@ -22,20 +22,23 @@
   .cat-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; padding:0 5px; }
   .cat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 15px; }
   
-  /* ESTILOS DE CATEGORÍAS CORREGIDOS */
+  /* ESTILOS DE CATEGORÍAS ACTUALIZADOS */
   .cat-item { 
     padding: 12px; 
     border-radius: 12px; 
     font-size: 13px; 
     cursor: pointer; 
     transition: 0.3s; 
-    font-weight: bold;
     border: 2px solid transparent;
-    background: var(--impostor); /* Rojo por defecto (desactivado) */
-    color: white;
+    background: var(--impostor); 
+    color: rgba(255,255,255,0.8);
+    text-decoration: line-through; /* Tachado por defecto */
+    font-weight: normal; /* Sin negrita */
   }
   .cat-item.active { 
-    background: var(--success); /* Verde si está seleccionado */
+    background: var(--success); 
+    color: white;
+    text-decoration: none; /* Quita el tachado al estar activa */
     box-shadow: 0 0 10px rgba(16, 185, 129, 0.2);
   }
   .cat-item.disabled { opacity: 0.8; cursor: default; }
@@ -98,8 +101,8 @@
         <div id="gameInstruction" style="font-size:14px; color:var(--text); margin-bottom:15px;"></div>
         
         <div id="replayControl" style="display:none;">
-            <button class="btn btn-primary" onclick="backToLobby()">CAMBIAR CATEGORÍAS</button>
-            <button class="btn btn-outline" style="margin-top:10px;" onclick="startGame()">JUGAR OTRA VEZ</button>
+            <button class="btn btn-primary" onclick="backToLobby()">CAMBIAR REGLAS</button>
+            <button class="btn btn-outline" style="margin-top:10px;" onclick="startGame()">OTRA RONDA</button>
         </div>
 
         <button class="btn" onclick="location.reload()" style="background:none; color:var(--muted); font-size:13px;">SALIR AL MENÚ</button>
@@ -184,61 +187,4 @@ function showLobby() {
 
         if(isHost) {
             document.getElementById('hostControls').style.display = 'block';
-            document.getElementById('waitMsg').style.display = 'none';
-        }
-
-        if(data.status === "playing") renderGame(data);
-        else if(data.status === "waiting") {
-            document.getElementById('gameScreen').style.display = 'none';
-            document.getElementById('lobbyScreen').style.display = 'block';
-        }
-    });
-}
-
-window.backToLobby = async () => {
-    await updateDoc(doc(db, "rooms", currentRoomId), { status: "waiting" });
-};
-
-window.startGame = async () => {
-    const roomRef = doc(db, "rooms", currentRoomId);
-    const snap = await getDoc(roomRef);
-    const players = snap.data().players;
-    if(players.length < 3) return alert("Mínimo 3 jugadores");
-
-    const configSnap = await getDoc(doc(db, "config", "personajesV2"));
-    const configData = configSnap.data();
-    let pool = [];
-    selectedCats.forEach(c => { if(configData[c]) pool = pool.concat(configData[c]); });
-
-    const character = pool[Math.floor(Math.random() * pool.length)];
-    let imps = [];
-    const r = Math.random() * 100;
-
-    if (r < 2) imps = []; 
-    else if (r < 4) imps = [...players]; 
-    else if (r < 9) imps = [...players].sort(() => 0.5 - Math.random()).slice(0, 2); 
-    else imps = [players[Math.floor(Math.random() * players.length)]]; 
-
-    await updateDoc(roomRef, { status: "playing", character: character, impostores: imps });
-};
-
-function renderGame(data) {
-    document.getElementById('lobbyScreen').style.display = 'none';
-    document.getElementById('gameScreen').style.display = 'block';
-    const roleDiv = document.getElementById('secretRole');
-    const instruction = document.getElementById('gameInstruction');
-    document.getElementById('replayControl').style.display = isHost ? 'block' : 'none';
-
-    if(data.impostores.includes(myName)) {
-        roleDiv.innerText = "¡IMPOSTOR!";
-        roleDiv.className = 'secret-box impostor-text';
-        instruction.innerHTML = "No sabés quién es el famoso.<br>¡Mentí para que no te descubran!";
-    } else {
-        roleDiv.innerText = data.character;
-        roleDiv.className = 'secret-box';
-        instruction.innerHTML = "El personaje es <b>" + data.character + "</b>.<br>Buscá quién está fingiendo.";
-    }
-}
-</script>
-</body>
-</html>
+            document.getElementById('waitMsg').style.display =
