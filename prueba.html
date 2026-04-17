@@ -38,6 +38,7 @@
   @keyframes pulse { 0% { transform:scale(1); } 50% { transform:scale(1.05); } 100% { transform:scale(1); } }
   
   .instruction-card{font-size:15px; color:var(--muted); line-height:1.5; margin-top:15px;}
+  .footer-hint{font-size:11px; color:var(--muted); margin-top:20px; font-style: italic;}
 </style>
 </head>
 <body>
@@ -74,7 +75,14 @@
         <p style="letter-spacing:1px; font-size:13px;">TU PERSONAJE SECRETO:</p>
         <div id="secretRole" class="secret-box">...</div>
         <div class="instruction-card" id="gameInstruction"></div>
-        <button class="btn btn-outline" onclick="location.reload()" style="margin-top:30px;">SALIR AL MENÚ</button>
+        
+        <div id="replayControl" style="display:none;">
+            <button class="btn btn-primary" onclick="startGame()">JUGAR OTRA VEZ</button>
+        </div>
+
+        <button class="btn" onclick="location.reload()" style="background:none; color:var(--muted); font-size:14px; margin-top:10px;">SALIR AL MENÚ</button>
+        
+        <p class="footer-hint">¿Estás listo para encontrar al impostor? <br> ¡Puede haber uno, dos, todos o ninguno!</p>
     </div>
   </div>
 </div>
@@ -100,69 +108,51 @@ let currentRoomId = null;
 let myName = "";
 let isHost = false;
 
-const personajes = [
-    "Lionel Messi", "Cristiano Ronaldo", "Luis Suárez", "Dibu Martínez", "Darwin Nuñez", "Mbappé", "Neymar Jr",
-    "Shakira", "Bad Bunny", "Karol G", "Bizarrap", "Duki", "Taylor Swift", "Miley Cyrus",
-    "Elon Musk", "Donald Trump", "Mark Zuckerberg", "Papa Francisco",
-    "Ibai Llanos", "Auronplay", "MrBeast", "El Rubius", "Coscu",
-    "Batman", "Spider-Man", "Iron Man", "Harry Potter", "Homero Simpson", "Shrek", "Mickey Mouse"
-];
+const personajes = ["Lionel Messi", "Cristiano Ronaldo", "Luis Suárez", "Dibu Martínez", "Darwin Nuñez", "Mbappé", "Shakira", "Bad Bunny", "Karol G", "Bizarrap", "Duki", "Taylor Swift", "Miley Cyrus", "Elon Musk", "Donald Trump", "Ibai Llanos", "Auronplay", "MrBeast", "Batman", "Spider-Man", "Homero Simpson", "Shrek", "Mickey Mouse", "Maradona", "Artigas"];
 
 window.createRoom = async () => {
     try {
         myName = document.getElementById('playerName').value.trim();
         if(!myName) return alert("Poné tu nombre");
-        
         currentRoomId = Math.floor(1000 + Math.random() * 9000).toString();
         isHost = true;
-        
         await setDoc(doc(db, "rooms", currentRoomId), {
             status: "waiting",
             players: [myName],
             host: myName,
             character: "",
-            impostor: ""
+            impostores: []
         });
-        
         showLobby();
-    } catch (e) {
-        console.error(e);
-        alert("Error de conexión. Asegurate de haber publicado las REGLAS en Firestore.");
-    }
+    } catch (e) { alert("Error: Revisá las Reglas en Firebase."); }
 };
 
 window.joinRoom = async () => {
     myName = document.getElementById('playerName').value.trim();
     currentRoomId = document.getElementById('roomCodeInput').value.toString().trim();
     if(!myName || !currentRoomId) return alert("Faltan datos");
-
     const roomRef = doc(db, "rooms", currentRoomId);
     try {
         const snap = await getDoc(roomRef);
         if(snap.exists()) {
-            if(snap.data().status !== "waiting") return alert("La partida ya empezó");
             await updateDoc(roomRef, { players: arrayUnion(myName) });
             showLobby();
-        } else {
-            alert("La sala no existe.");
-        }
-    } catch (e) { alert("Error al unirse. Revisá las Reglas de Firestore."); }
+        } else { alert("La sala no existe."); }
+    } catch (e) { alert("Error al entrar."); }
 };
 
 function showLobby() {
     document.getElementById('setupScreen').style.display = 'none';
     document.getElementById('lobbyScreen').style.display = 'block';
     document.getElementById('displayCode').innerText = currentRoomId;
-    
     if(isHost) {
         document.getElementById('hostControls').style.display = 'block';
         document.getElementById('waitMsg').style.display = 'none';
+        document.getElementById('replayControl').style.display = 'block';
     }
-
     onSnapshot(doc(db, "rooms", currentRoomId), (snap) => {
         const data = snap.data();
         if(!data) return;
-
         const list = document.getElementById('playerList');
         list.innerHTML = data.players.map(p => `
             <div class="player-item">
@@ -170,8 +160,11 @@ function showLobby() {
                 <span style="font-size:12px; color:var(--primary)">${p === data.host ? '👑 HOST' : 'LISTO'}</span>
             </div>
         `).join('');
-
         if(data.status === "playing") renderGame(data);
+        else if(data.status === "waiting") {
+            document.getElementById('gameScreen').style.display = 'none';
+            document.getElementById('lobbyScreen').style.display = 'block';
+        }
     });
 }
 
@@ -179,36 +172,46 @@ window.startGame = async () => {
     const roomRef = doc(db, "rooms", currentRoomId);
     const snap = await getDoc(roomRef);
     const players = snap.data().players;
-    
-    if(players.length < 3) return alert("Se necesitan al menos 3 jugadores");
+    if(players.length < 3) return alert("Mínimo 3 jugadores");
 
     const character = personajes[Math.floor(Math.random() * personajes.length)];
-    const impostor = players[Math.floor(Math.random() * players.length)];
+    let impostores = [];
+    const r = Math.random() * 100;
+
+    if (r < 5) { // 5% Ninguno
+        impostores = [];
+    } else if (r < 15) { // 10% Todos (5+10)
+        impostores = [...players];
+    } else if (r < 35) { // 20% Dos (15+20)
+        let shuffled = [...players].sort(() => 0.5 - Math.random());
+        impostores = [shuffled[0], shuffled[1]];
+    } else { // Resto: Uno solo
+        impostores = [players[Math.floor(Math.random() * players.length)]];
+    }
 
     await updateDoc(roomRef, {
         status: "playing",
         character: character,
-        impostor: impostor
+        impostores: impostores
     });
 };
 
 function renderGame(data) {
     document.getElementById('lobbyScreen').style.display = 'none';
     document.getElementById('gameScreen').style.display = 'block';
-    
     const roleDiv = document.getElementById('secretRole');
     const instruction = document.getElementById('gameInstruction');
 
-    if(myName === data.impostor) {
+    if(data.impostores.includes(myName)) {
         roleDiv.innerText = "¡SOS EL IMPOSTOR!";
         roleDiv.classList.add('impostor-text');
         roleDiv.style.color = "var(--impostor)";
-        instruction.innerHTML = "No sabés quién es el famoso. Escuchá las preguntas y tratá de deducirlo sin que te descubran.";
+        instruction.innerHTML = "No sabés quién es el famoso. <br> ¡Mentí para que no te descubran!";
     } else {
         roleDiv.innerText = data.character;
         roleDiv.classList.remove('impostor-text');
         roleDiv.style.color = "var(--primary)";
-        instruction.innerHTML = "El famoso es <b>" + data.character + "</b>. Hacé preguntas inteligentes para pillar al impostor.";
+        instruction.innerHTML = "El personaje es <b>" + data.character + "</b>. <br> Buscá quién está fingiendo.";
     }
 }
 </script>
