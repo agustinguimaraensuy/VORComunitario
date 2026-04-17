@@ -19,7 +19,8 @@
   .btn-outline{background:transparent;border:2px solid var(--primary);color:var(--primary);}
   .btn-start{background:var(--impostor);color:white;margin-top:25px;}
   
-  .cat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin: 15px 0; }
+  .cat-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; padding:0 5px; }
+  .cat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 15px; }
   .cat-item { padding: 12px; border: 1px solid var(--border); border-radius: 12px; font-size: 13px; cursor: pointer; transition: 0.2s; color: var(--muted); }
   .cat-item.active { background: var(--primary); border-color: var(--primary); color: white; font-weight: bold; }
   .cat-item.disabled { opacity: 0.7; cursor: default; }
@@ -54,7 +55,10 @@
       <h2 id="displayCode" style="font-size:45px; font-family:'Bebas Neue';">----</h2>
       
       <div style="margin-top:15px;">
-        <p style="font-size:12px; color:var(--primary); font-weight: bold;">SELECCIONÁ CATEGORÍAS (PODÉS VARIAS):</p>
+        <div class="cat-header">
+            <p style="font-size:12px; color:var(--primary); font-weight: bold;">CATEGORÍAS:</p>
+            <button id="btnAll" onclick="selectAllCats()" style="background:none; border:1px solid var(--primary); color:var(--primary); padding:4px 8px; border-radius:6px; font-size:10px; cursor:pointer;">SELECCIONAR TODAS</button>
+        </div>
         <div class="cat-grid" id="catGrid">
           <div class="cat-item active" data-id="deportes" onclick="toggleCat('deportes')">Deportes</div>
           <div class="cat-item active" data-id="musica" onclick="toggleCat('musica')">Música</div>
@@ -80,13 +84,11 @@
         <div id="gameInstruction" style="font-size:14px; color:var(--text); margin-bottom:15px;"></div>
         
         <div id="replayControl" style="display:none;">
-            <p style="font-size:11px; color:var(--primary); margin-bottom:5px;">PODÉS CAMBIAR CATEGORÍAS ANTES DE REINICIAR</p>
-            <button class="btn btn-primary" onclick="backToLobby()">CAMBIAR REGLAS / CATEGORÍAS</button>
+            <button class="btn btn-primary" onclick="backToLobby()">CAMBIAR CATEGORÍAS</button>
             <button class="btn btn-outline" style="margin-top:10px;" onclick="startGame()">JUGAR OTRA VEZ</button>
         </div>
 
         <button class="btn" onclick="location.reload()" style="background:none; color:var(--muted); font-size:13px;">SALIR AL MENÚ</button>
-        <p class="footer-hint">¿Estás listo para encontrar al impostor? <br> ¡Puede haber uno, dos, todos o ninguno!</p>
     </div>
   </div>
 </div>
@@ -113,7 +115,7 @@ window.createRoom = async () => {
     if(!myName) return alert("Poné tu nombre");
     currentRoomId = Math.floor(1000 + Math.random() * 9000).toString();
     isHost = true;
-    await setDoc(doc(db, "rooms", currentRoomId), { status: "waiting", players: [myName], host: myName, character: "", categories: selectedCats, impostores: [] });
+    await setDoc(doc(db, "rooms", currentRoomId), { status: "waiting", players: [myName], host: myName, categories: selectedCats, impostores: [] });
     showLobby();
 };
 
@@ -124,15 +126,24 @@ window.joinRoom = async () => {
     const roomRef = doc(db, "rooms", currentRoomId);
     const snap = await getDoc(roomRef);
     if(snap.exists()) { await updateDoc(roomRef, { players: arrayUnion(myName) }); isHost = false; showLobby(); }
+    else alert("La sala no existe");
 };
 
 window.toggleCat = async (catId) => {
     if(!isHost) return;
-    if(selectedCats.includes(catId)) {
-        if(selectedCats.length > 1) selectedCats = selectedCats.filter(c => c !== catId);
+    let nuevas = [...selectedCats];
+    if(nuevas.includes(catId)) {
+        if(nuevas.length > 1) nuevas = nuevas.filter(c => c !== catId);
     } else {
-        selectedCats.push(catId);
+        nuevas.push(catId);
     }
+    selectedCats = nuevas;
+    await updateDoc(doc(db, "rooms", currentRoomId), { categories: selectedCats });
+};
+
+window.selectAllCats = async () => {
+    if(!isHost) return;
+    selectedCats = ["deportes", "musica", "cine", "ficcion", "animacion", "redes", "historia_politica", "variados"];
     await updateDoc(doc(db, "rooms", currentRoomId), { categories: selectedCats });
 };
 
@@ -146,11 +157,12 @@ function showLobby() {
         if(!data) return;
         selectedCats = data.categories || [];
         
-        // UI de categorías
         document.querySelectorAll('.cat-item').forEach(el => {
             el.classList.toggle('active', selectedCats.includes(el.dataset.id));
             if(!isHost) el.classList.add('disabled');
         });
+        
+        if(!isHost) document.getElementById('btnAll').style.display = 'none';
 
         document.getElementById('playerList').innerHTML = data.players.map(p => `
             <div class="player-item"><span>${p}</span><span>${p === data.host ? '👑' : ''}</span></div>
@@ -159,7 +171,6 @@ function showLobby() {
         if(isHost) {
             document.getElementById('hostControls').style.display = 'block';
             document.getElementById('waitMsg').style.display = 'none';
-            document.getElementById('replayControl').style.display = 'block';
         }
 
         if(data.status === "playing") renderGame(data);
@@ -202,6 +213,7 @@ function renderGame(data) {
     document.getElementById('gameScreen').style.display = 'block';
     const roleDiv = document.getElementById('secretRole');
     const instruction = document.getElementById('gameInstruction');
+    document.getElementById('replayControl').style.display = isHost ? 'block' : 'none';
 
     if(data.impostores.includes(myName)) {
         roleDiv.innerText = "¡IMPOSTOR!";
