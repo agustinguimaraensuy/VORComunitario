@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-<title>IMPOSTOR - SALA REALTIME</title>
+<title>EL IMPOSTOR - JUEGO DE SALA</title>
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
 <style>
   :root {
@@ -35,7 +35,7 @@
   #gameScreen, #lobbyScreen{display:none;}
   .secret-box{font-size:38px;font-family:'Bebas Neue';color:var(--primary);margin:25px 0;padding:30px;border:2px dashed var(--border);border-radius:15px;background:rgba(255,255,255,0.02);}
   .impostor-text{color:var(--impostor);animation: pulse 1s infinite;}
-  @keyframes pulse { 0% { opacity: 1; transform:scale(1); } 50% { opacity: 0.7; transform:scale(1.02); } 100% { opacity: 1; transform:scale(1); } }
+  @keyframes pulse { 0% { transform:scale(1); } 50% { transform:scale(1.05); } 100% { transform:scale(1); } }
   
   .instruction-card{font-size:15px; color:var(--muted); line-height:1.5; margin-top:15px;}
 </style>
@@ -65,7 +65,7 @@
       <div id="hostControls" style="display:none;">
         <button class="btn btn-start" onclick="startGame()">INICIAR PARTIDA</button>
       </div>
-      <div id="waitMsg" style="margin-top:20px; color:var(--muted); font-size:14px;">Esperando al Host...</div>
+      <div id="waitMsg" style="margin-top:20px; color:var(--muted); font-size:14px;">Esperando que el Host inicie...</div>
     </div>
   </div>
 
@@ -86,6 +86,7 @@ import { getFirestore, doc, setDoc, onSnapshot, updateDoc, arrayUnion, getDoc } 
 const firebaseConfig = {
   apiKey: "AIzaSyBgXAxWOmLok8XkReoJouYAQRcLZP_yrHg",
   authDomain: "impostor-4f464.firebaseapp.com",
+  databaseURL: "https://impostor-4f464-default-rtdb.firebaseio.com",
   projectId: "impostor-4f464",
   storageBucket: "impostor-4f464.firebasestorage.app",
   messagingSenderId: "711021445541",
@@ -99,7 +100,13 @@ let currentRoomId = null;
 let myName = "";
 let isHost = false;
 
-const personajes = ["Lionel Messi", "Cristiano Ronaldo", "Luis Suárez", "Dibu Martínez", "Shakira", "Bad Bunny", "Karol G", "Bizarrap", "Elon Musk", "Donald Trump", "Auronplay", "Ibai Llanos", "Batman", "Spider-Man", "Homero Simpson", "Mickey Mouse", "Shrek", "Duki", "Maradona", "Artigas"];
+const personajes = [
+    "Lionel Messi", "Cristiano Ronaldo", "Luis Suárez", "Dibu Martínez", "Darwin Nuñez", "Mbappé", "Neymar Jr",
+    "Shakira", "Bad Bunny", "Karol G", "Bizarrap", "Duki", "Taylor Swift", "Miley Cyrus",
+    "Elon Musk", "Donald Trump", "Mark Zuckerberg", "Papa Francisco",
+    "Ibai Llanos", "Auronplay", "MrBeast", "El Rubius", "Coscu",
+    "Batman", "Spider-Man", "Iron Man", "Harry Potter", "Homero Simpson", "Shrek", "Mickey Mouse"
+];
 
 window.createRoom = async () => {
     try {
@@ -120,24 +127,26 @@ window.createRoom = async () => {
         showLobby();
     } catch (e) {
         console.error(e);
-        alert("Error: Revisá que las REGLAS en Firebase estén publicadas.");
+        alert("Error de conexión. Asegurate de haber publicado las REGLAS en Firestore.");
     }
 };
 
 window.joinRoom = async () => {
     myName = document.getElementById('playerName').value.trim();
     currentRoomId = document.getElementById('roomCodeInput').value.toString().trim();
-    if(!myName || !currentRoomId) return alert("Completá los campos");
+    if(!myName || !currentRoomId) return alert("Faltan datos");
 
     const roomRef = doc(db, "rooms", currentRoomId);
-    const snap = await getDoc(roomRef);
-    
-    if(snap.exists()) {
-        await updateDoc(roomRef, { players: arrayUnion(myName) });
-        showLobby();
-    } else {
-        alert("La sala no existe.");
-    }
+    try {
+        const snap = await getDoc(roomRef);
+        if(snap.exists()) {
+            if(snap.data().status !== "waiting") return alert("La partida ya empezó");
+            await updateDoc(roomRef, { players: arrayUnion(myName) });
+            showLobby();
+        } else {
+            alert("La sala no existe.");
+        }
+    } catch (e) { alert("Error al unirse. Revisá las Reglas de Firestore."); }
 };
 
 function showLobby() {
@@ -171,7 +180,7 @@ window.startGame = async () => {
     const snap = await getDoc(roomRef);
     const players = snap.data().players;
     
-    if(players.length < 3) return alert("Se necesitan 3 jugadores mínimo");
+    if(players.length < 3) return alert("Se necesitan al menos 3 jugadores");
 
     const character = personajes[Math.floor(Math.random() * personajes.length)];
     const impostor = players[Math.floor(Math.random() * players.length)];
@@ -194,12 +203,12 @@ function renderGame(data) {
         roleDiv.innerText = "¡SOS EL IMPOSTOR!";
         roleDiv.classList.add('impostor-text');
         roleDiv.style.color = "var(--impostor)";
-        instruction.innerHTML = "No sabés quién es el famoso. Escuchá las preguntas de los demás y tratá de adivinarlo para ganar.";
+        instruction.innerHTML = "No sabés quién es el famoso. Escuchá las preguntas y tratá de deducirlo sin que te descubran.";
     } else {
         roleDiv.innerText = data.character;
         roleDiv.classList.remove('impostor-text');
         roleDiv.style.color = "var(--primary)";
-        instruction.innerHTML = "El personaje es <b>" + data.character + "</b>. Hacé preguntas sutiles para descubrir quién no tiene idea.";
+        instruction.innerHTML = "El famoso es <b>" + data.character + "</b>. Hacé preguntas inteligentes para pillar al impostor.";
     }
 }
 </script>
